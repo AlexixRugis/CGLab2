@@ -1,18 +1,18 @@
-﻿
-
-using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Drawing;
 
 public class Window : GameWindow
 {
-    private readonly float[] _vertices =
+    private readonly Vertex[] _vertices =
     {
-        0.5f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f
+        new Vertex() { Position = new Vector3(0.5f, 0.5f, 0.0f), UV = new Vector2(1.0f,0.0f) },
+        new Vertex() { Position = new Vector3(0.5f, -0.5f, 0.0f), UV = new Vector2(1.0f,1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, -0.5f, 0.0f), UV = new Vector2(0.0f,1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, 0.5f, 0.0f), UV = new Vector2(0.0f,0.0f) }
     };
 
     private readonly uint[] _indices =
@@ -21,11 +21,9 @@ public class Window : GameWindow
         1, 2, 3
     };
 
-    private int _vbo;
-    private int _ebo;
-    private int _vao;
-
+    private Mesh _mesh;
     private Shader _shader;
+    private Texture _texture;
 
     public Window(int width, int height, string title) 
         : base(GameWindowSettings.Default, 
@@ -39,35 +37,25 @@ public class Window : GameWindow
 
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
+        GL.Enable(EnableCap.Texture2D);
+        GL.Disable(EnableCap.Blend);
+        GL.Disable(EnableCap.Lighting);
+
         string vpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/vert.glsl");
         string fpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/frag.glsl");
-        _shader = new Shader(vpath, fpath);
-
-        _vao = GL.GenVertexArray();
-        _ebo = GL.GenBuffer();
-        _vbo = GL.GenBuffer();
-
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(float), _indices, BufferUsageHint.StaticDraw);
-
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
+        string texturepath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/cat.png");
+        string vtext = File.ReadAllText(vpath);
+        string ftext = File.ReadAllText(fpath);
+        _shader = new Shader(vtext, ftext);
+        _texture = new Texture(new Bitmap(texturepath), true);
+        _mesh = new Mesh(_vertices, _indices);
     }
 
     protected override void OnUnload()
     {
         base.OnUnload();
 
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.DeleteBuffer(_vbo);
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-        GL.DeleteBuffer(_ebo);
-        GL.BindVertexArray(0);
-        GL.DeleteVertexArray(_vao);
-
+        _mesh.Dispose();
         _shader.Dispose();
     }
 
@@ -91,8 +79,9 @@ public class Window : GameWindow
 
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        _shader.Use();
-        GL.BindVertexArray(_vao);
+        _texture.Bind(TextureUnit.Texture0);
+        _shader.Bind();
+        _mesh.Bind();
         GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
 
         SwapBuffers();
