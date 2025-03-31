@@ -47,14 +47,40 @@ public class Game : GameWindow
         new Vertex() { Position = new Vector3(-0.5f, 0.5f, 0.0f), UV = new Vector2(0.0f,0.0f) }
     };
 
+    private readonly Vertex[] _vertices2 =
+    {
+        new Vertex() { Position = new Vector3(0.5f, 2.5f, 0.5f), UV = new Vector2(1.0f,0.0f) },
+        new Vertex() { Position = new Vector3(0.5f, -0.5f, 0.5f), UV = new Vector2(1.0f,1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, -0.5f, -0.5f), UV = new Vector2(0.0f,1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, 2.5f, -0.5f), UV = new Vector2(0.0f,0.0f) },
+
+        new Vertex() { Position = new Vector3(0.5f, 2.5f, -0.5f), UV = new Vector2(1.0f,0.0f) },
+        new Vertex() { Position = new Vector3(0.5f, -0.5f, -0.5f), UV = new Vector2(1.0f,1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, -0.5f, 0.5f), UV = new Vector2(0.0f,1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, 2.5f, 0.5f), UV = new Vector2(0.0f,0.0f) },
+    };
+
     private readonly uint[] _indices =
     {
         0, 1, 3,
         1, 2, 3
     };
 
+    private readonly uint[] _indices2 =
+    {
+        0, 1, 3,
+        1, 2, 3,
+
+        4, 5, 7,
+        5, 6, 7
+    };
+
     private Mesh _mesh;
+    private Mesh _mesh2;
     private Texture _texture;
+    private Texture _texture2;
+    private Texture _texture3;
+    private Texture _texture4;
 
     private int _counter = 0;
 
@@ -82,12 +108,34 @@ public class Game : GameWindow
         _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
 
         string texturepath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/cat.png");
+        string texturepath2 = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/seal.jpg");
+        string texturepath3 = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/beach.png");
+        string texturepath4 = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/palm.png");
         _texture = new Texture(new Bitmap(texturepath), true);
+        _texture2 = new Texture(new Bitmap(texturepath2), true);
+        _texture3 = new Texture(new Bitmap(texturepath3), true);
+        _texture4 = new Texture(new Bitmap(texturepath4), true);
         _mesh = new Mesh(_vertices, _indices);
+        _mesh2 = new Mesh(_vertices2, _indices2);
+
+        Entity floor = new Entity("Floor");
+        floor.AddComponent(new StaticMeshComponent() { Mesh = _mesh, Texture = _texture3 });
+        floor.Transform.Rotation = Quaternion.FromEulerAngles(0.5f * MathF.PI, 0.0f, 0.0f);
+        floor.Transform.Position.Y = -0.5f;
+        floor.Transform.Scale = Vector3.One * 10.0f;
+
+        Entity meshEntity3 = new Entity("Mesh3");
+        meshEntity3.Transform.Position.X -= 2.0f;
+        meshEntity3.AddComponent(new StaticMeshComponent() { Mesh = _mesh2, Texture = _texture4 });
 
         Entity meshEntity = new Entity("Mesh");
-        meshEntity.AddComponent(new StaticMeshComponent() { Mesh = _mesh });
+        meshEntity.AddComponent(new StaticMeshComponent() { Mesh = _mesh, Texture = _texture2 });
         meshEntity.AddComponent(new RotatorComponent() { Speed = 1.0f });
+
+        Entity meshEntity2 = new Entity("Mesh2");
+        meshEntity2.AddComponent(new StaticMeshComponent() { Mesh = _mesh, Texture = _texture });
+        meshEntity2.AddComponent(new RotatorComponent() { Speed = 3.0f });
+        meshEntity2.Transform.Position.X += 2.0f;
 
         Entity cameraEntity = new Entity("Camera");
         Camera cam = new Camera();
@@ -98,16 +146,18 @@ public class Game : GameWindow
         cam.FarPlane = 100f;
         cam.ClearColor = Color.White;
         cam.IsOrthograthic = false;
-        cam.ClearColor = Color.Blue;
+        cam.ClearColor = Color.DeepSkyBlue;
         cam.Entity.Transform.Position.Z = 3;
+        cam.Entity.Transform.Position.Y = 1;
 
         _world.AddEntity(meshEntity);
+        _world.AddEntity(meshEntity2);
+        _world.AddEntity(floor);
+        _world.AddEntity(meshEntity3);
         _world.AddEntity(cameraEntity);
         _world.CurrentCamera = cam;
 
         _renderer.OnLoad();
-
-        _texture.Bind(TextureUnit.Texture0);
 
         _world.OnStart();
     }
@@ -125,7 +175,11 @@ public class Game : GameWindow
         _renderer.OnUnload();
 
         _mesh.Dispose();
-
+        _mesh2.Dispose();
+        _texture.Dispose();
+        _texture2.Dispose();
+        _texture3.Dispose();
+        _texture4.Dispose();
     }
 
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e)

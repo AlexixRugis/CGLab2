@@ -6,6 +6,7 @@ public class Renderer
     struct DrawRequest
     {
         public Mesh Mesh;
+        public Texture Texture;
         public Matrix4 ModelMatrix;
     }
 
@@ -16,8 +17,9 @@ public class Renderer
     public void OnLoad()
     {
         GL.Enable(EnableCap.Texture2D);
-        GL.Disable(EnableCap.Blend);
-        GL.Disable(EnableCap.Lighting);
+        GL.Enable(EnableCap.DepthTest);
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         string vpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/vert.glsl");
         string fpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/frag.glsl");
@@ -44,7 +46,7 @@ public class Renderer
         }
 
         GL.ClearColor(camera.ClearColor);
-        GL.Clear(ClearBufferMask.ColorBufferBit);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         _shader.Bind();
         Matrix4 view = camera.Entity.Transform.WorldToLocal;
@@ -57,13 +59,14 @@ public class Renderer
             DrawRequest dr = _drawRequests[i];
 
             _shader.SetMatrix("_Model", ref dr.ModelMatrix);
+            dr.Texture.Bind(TextureUnit.Texture0);
             dr.Mesh.Bind();
             GL.DrawElements(PrimitiveType.Triangles, dr.Mesh.IndicesCount, DrawElementsType.UnsignedInt, 0);
         }
     }
 
-    public void DrawMesh(Mesh mesh, Matrix4 transform)
+    public void DrawMesh(Mesh mesh, Texture tex, Matrix4 transform)
     {
-        _drawRequests.Add(new DrawRequest { Mesh = mesh, ModelMatrix = transform });
+        _drawRequests.Add(new DrawRequest { Mesh = mesh, ModelMatrix = transform, Texture = tex });
     }
 }
