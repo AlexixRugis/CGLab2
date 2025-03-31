@@ -12,9 +12,9 @@ public struct Transform
 
     public Matrix4 WorldToLocal => Matrix4.Invert(LocalToWorld);
 
-    public Vector3 Forward => (LocalToWorld * Vector4.UnitZ).Xyz;
-    public Vector3 Up => (LocalToWorld * Vector4.UnitY).Xyz;
-    public Vector3 Right => (LocalToWorld * Vector4.UnitX).Xyz;
+    public Vector3 Forward => Matrix3.CreateFromQuaternion(Rotation).Row2;
+    public Vector3 Up => Matrix3.CreateFromQuaternion(Rotation).Row1;
+    public Vector3 Right => Matrix3.CreateFromQuaternion(Rotation).Row0;
 
     public Transform() { }
 }

@@ -4,10 +4,13 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 public class FreeCameraController : Component, IUpdatable
 {
     public float MovementSpeed = 1.0f;
-    public float Sensitivity = 0.4f;
+    public float Sensitivity = 5f;
 
     private bool _firstMove = true;
     private Vector2 _lastPos;
+
+    private float _pitch = 0.0f;
+    private float _yaw = 0.0f;
 
     private KeyboardState _keyboardState;
     private MouseState _mouseState;
@@ -74,10 +77,22 @@ public class FreeCameraController : Component, IUpdatable
 
             _lastPos = new Vector2(_mouseState.X, _mouseState.Y);
 
-            Entity.Transform.Rotation *= Quaternion.FromEulerAngles(
-                -deltaY * Sensitivity * deltaTime,
-                -deltaX * Sensitivity * deltaTime,
-                0.0f);
+            _pitch -= deltaY * Sensitivity * deltaTime;
+            if (_pitch > 89.0f)
+            {
+                _pitch = 89.0f;
+            }
+            else if (_pitch < -89.0f)
+            {
+                _pitch = -89.0f;
+            }
+
+            _yaw -= deltaX * Sensitivity * deltaTime;
+
+            Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegToRad * _yaw);
+            q *= Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegToRad * _pitch);
+
+            Entity.Transform.Rotation = q;
         }
 
     }
