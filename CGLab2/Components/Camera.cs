@@ -1,5 +1,4 @@
 ﻿using OpenTK.Mathematics;
-using System.ComponentModel;
 
 public class Camera : Component
 {
@@ -14,6 +13,6 @@ public class Camera : Component
     public Matrix4 GetProjectionMatrix()
     {
         return IsOrthograthic ? Matrix4.CreateOrthographic(Width, Height, NearPlane, FarPlane) :
-            Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FOV), Screen.Aspect, NearPlane, FarPlane);
+            Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FOV), Screen.Aspect, NearPlane, FarPlane); ;
     }
 }

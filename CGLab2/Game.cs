@@ -6,6 +6,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Drawing;
 using Dear_ImGui_Sample;
 using ImGuiNET;
+using System.Net.WebSockets;
 
 public class Game : GameWindow
 {
@@ -36,6 +37,7 @@ public class Game : GameWindow
     }
 
     private World _world = new World();
+    private Renderer _renderer = new Renderer();
 
     private readonly Vertex[] _vertices =
     {
@@ -52,7 +54,6 @@ public class Game : GameWindow
     };
 
     private Mesh _mesh;
-    private Shader _shader;
     private Texture _texture;
 
     private int _counter = 0;
@@ -80,31 +81,35 @@ public class Game : GameWindow
 
         _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
 
-        GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-        GL.Enable(EnableCap.Texture2D);
-        GL.Disable(EnableCap.Blend);
-        GL.Disable(EnableCap.Lighting);
-
-        string vpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/vert.glsl");
-        string fpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/frag.glsl");
         string texturepath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/cat.png");
-        string vtext = File.ReadAllText(vpath);
-        string ftext = File.ReadAllText(fpath);
-        _shader = new Shader(vtext, ftext);
         _texture = new Texture(new Bitmap(texturepath), true);
         _mesh = new Mesh(_vertices, _indices);
 
-        Entity entity = new Entity("Mesh");
-        entity.Mesh = _mesh;
+        Entity meshEntity = new Entity("Mesh");
+        meshEntity.AddComponent(new StaticMeshComponent() { Mesh = _mesh });
+        meshEntity.AddComponent(new RotatorComponent() { Speed = 1.0f });
 
-        _world.AddEntity(entity);
-        _world.Camera.FOV = 60;
-        _world.Camera.NearPlane = 0.1f;
-        _world.Camera.FarPlane = 100f;
-        _world.Camera.ClearColor = Color.White;
-        _world.Camera.IsOrthograthic = false;
-        _world.CameraTransform.Position.Z = 4;
+        Entity cameraEntity = new Entity("Camera");
+        Camera cam = new Camera();
+        cameraEntity.AddComponent(cam);
+        cameraEntity.AddComponent(new FreeCameraController());
+        cam.FOV = 60;
+        cam.NearPlane = 0.1f;
+        cam.FarPlane = 100f;
+        cam.ClearColor = Color.White;
+        cam.IsOrthograthic = false;
+        cam.ClearColor = Color.Blue;
+        cam.Entity.Transform.Position.Z = 3;
+
+        _world.AddEntity(meshEntity);
+        _world.AddEntity(cameraEntity);
+        _world.CurrentCamera = cam;
+
+        _renderer.OnLoad();
+
+        _texture.Bind(TextureUnit.Texture0);
+
+        _world.OnStart();
     }
 
     public static void Start()
@@ -116,8 +121,11 @@ public class Game : GameWindow
     {
         base.OnUnload();
 
+        _world.DestroyAll();
+        _renderer.OnUnload();
+
         _mesh.Dispose();
-        _shader.Dispose();
+
     }
 
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
@@ -135,40 +143,18 @@ public class Game : GameWindow
         base.OnUpdateFrame(args);
 
         _controller.Update(this, (float)args.Time);
-
-        Entity ent = _world.FindEntity("Mesh");
-        ent.Transform.Rotation *= Quaternion.FromEulerAngles(0, (float)args.Time, 0);
-
-        if (KeyboardState.IsKeyDown(Keys.Escape))
-        {
-            Close();
-        }
         if (KeyboardState.IsKeyPressed(Keys.F5))
         {
             _showImGui = !_showImGui;
         }
 
-        // Rendering
-
-        GL.Clear(ClearBufferMask.ColorBufferBit);
-
-        _shader.Bind();
-        Matrix4 view = _world.CameraTransform.WorldToLocal;
-        Matrix4 proj = _world.Camera.GetProjectionMatrix();
-        _shader.SetMatrix("_View", ref view);
-        _shader.SetMatrix("_Projection", ref proj);
-        _texture.Bind(TextureUnit.Texture0);
-
-        for (int i = 0; i < _world.Entities.Count; i++)
+        foreach (var e in _world.Updatables)
         {
-            Entity e = _world.Entities[i];
-            if (e.Mesh == null) continue;
-
-            Matrix4 model = e.Transform.LocalToWorld;
-            _shader.SetMatrix("_Model", ref model);
-            _mesh.Bind();
-            GL.DrawElements(PrimitiveType.Triangles, _mesh.IndicesCount, DrawElementsType.UnsignedInt, 0);
+            e.Update((float)args.Time);
         }
+
+        // Rendering
+        _renderer.Render(_world);
 
         // Enable Docking
         if (_showImGui)
@@ -184,8 +170,6 @@ public class Game : GameWindow
                 Console.WriteLine("fff");
             }
 
-
-
             ImGui.End();
 
             _controller.Render();
@@ -194,6 +178,8 @@ public class Game : GameWindow
         }
 
         SwapBuffers();
+
+        _world.ProcessDestroy();
     }
 
     protected override void OnTextInput(TextInputEventArgs e)
