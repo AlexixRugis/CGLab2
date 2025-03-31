@@ -6,7 +6,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Drawing;
 using Dear_ImGui_Sample;
 using ImGuiNET;
-using System.Net.WebSockets;
 
 public class Game : GameWindow
 {
@@ -14,11 +13,7 @@ public class Game : GameWindow
     private const int _height = 720;
     private const string _title = "Test Window";
     private const VSyncMode _vSyncMode = VSyncMode.On;
-    private const int antiAliasingLevel = 16;
-
-    private ImGuiController _controller;
-    private bool _showImGui = false;
-    private bool _vsync = false;
+    private const int _antiAliasingLevel = 16;
 
 
     private static Game _instance;
@@ -36,7 +31,11 @@ public class Game : GameWindow
         }
     }
 
-    private World _world = new World();
+    private ImGuiEditor _editor;
+
+    public AssetLoader Assets { get; } = new AssetLoader();
+    public World World { get; } = new World();
+
     private Renderer _renderer = new Renderer();
 
     private readonly Vertex[] _vertices =
@@ -75,13 +74,6 @@ public class Game : GameWindow
         5, 6, 7
     };
 
-    private Mesh _mesh;
-    private Mesh _mesh2;
-    private Texture _texture;
-    private Texture _texture2;
-    private Texture _texture3;
-    private Texture _texture4;
-
     private int _counter = 0;
 
     private Game() : base(GameWindowSettings.Default,
@@ -96,6 +88,7 @@ public class Game : GameWindow
             AlphaBits = 0,
             DepthBits = 24,
             StencilBits = 8,
+            NumberOfSamples = _antiAliasingLevel
         })
     {
         VSync = _vSyncMode;
@@ -105,35 +98,63 @@ public class Game : GameWindow
     {
         base.OnLoad();
 
-        _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
+        Assets.LoadShader("ShaderTexUnlit",
+            "Resources/Shaders/vert.glsl",
+            "Resources/Shaders/frag.glsl");
 
-        string texturepath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/cat.png");
-        string texturepath2 = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/seal.jpg");
-        string texturepath3 = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/beach.png");
-        string texturepath4 = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Textures/palm.png");
-        _texture = new Texture(new Bitmap(texturepath), true);
-        _texture2 = new Texture(new Bitmap(texturepath2), true);
-        _texture3 = new Texture(new Bitmap(texturepath3), true);
-        _texture4 = new Texture(new Bitmap(texturepath4), true);
-        _mesh = new Mesh(_vertices, _indices);
-        _mesh2 = new Mesh(_vertices2, _indices2);
+        Assets.LoadTexture("TexCat", "Resources/Textures/cat.png", true);
+        Assets.LoadTexture("TexSeal", "Resources/Textures/seal.jpg", true);
+        Assets.LoadTexture("TexBeach", "Resources/Textures/beach.png", true);
+        Assets.LoadTexture("TexPalm", "Resources/Textures/palm.png", true);
+
+        Assets.LoadMesh("MeshQuad", _vertices, _indices);
+        Assets.LoadMesh("MeshPalm", _vertices2, _indices2);
 
         Entity floor = new Entity("Floor");
-        floor.AddComponent(new StaticMeshComponent() { Mesh = _mesh, Texture = _texture3 });
+        floor.AddComponent(new StaticMeshComponent() {
+            Mesh = Assets.GetMesh("MeshQuad"), 
+            Texture = Assets.GetTexture("TexBeach")
+        });
         floor.Transform.Rotation = Quaternion.FromEulerAngles(0.5f * MathF.PI, 0.0f, 0.0f);
         floor.Transform.Position.Y = -0.5f;
-        floor.Transform.Scale = Vector3.One * 10.0f;
+        floor.Transform.Scale = new Vector3(15.0f, 10.0f, 1.0f);
 
         Entity meshEntity3 = new Entity("Mesh3");
         meshEntity3.Transform.Position.X -= 2.0f;
-        meshEntity3.AddComponent(new StaticMeshComponent() { Mesh = _mesh2, Texture = _texture4 });
+        meshEntity3.AddComponent(new StaticMeshComponent() {
+            Mesh = Assets.GetMesh("MeshPalm"),
+            Texture = Assets.GetTexture("TexPalm")
+        });
+
+        Entity meshEntity4 = new Entity("Mesh4");
+        meshEntity4.Transform.Position.X += 4.0f;
+        meshEntity4.AddComponent(new StaticMeshComponent()
+        {
+            Mesh = Assets.GetMesh("MeshPalm"),
+            Texture = Assets.GetTexture("TexPalm")
+        });
+
+        Entity meshEntity5 = new Entity("Mesh5");
+        meshEntity5.Transform.Position.X -= 1.0f;
+        meshEntity5.Transform.Position.Z -= 2.0f;
+        meshEntity5.AddComponent(new StaticMeshComponent()
+        {
+            Mesh = Assets.GetMesh("MeshPalm"),
+            Texture = Assets.GetTexture("TexPalm")
+        });
 
         Entity meshEntity = new Entity("Mesh");
-        meshEntity.AddComponent(new StaticMeshComponent() { Mesh = _mesh, Texture = _texture2 });
+        meshEntity.AddComponent(new StaticMeshComponent() {
+            Mesh = Assets.GetMesh("MeshQuad"),
+            Texture = Assets.GetTexture("TexCat")
+        });
         meshEntity.AddComponent(new RotatorComponent() { Speed = 1.0f });
 
         Entity meshEntity2 = new Entity("Mesh2");
-        meshEntity2.AddComponent(new StaticMeshComponent() { Mesh = _mesh, Texture = _texture });
+        meshEntity2.AddComponent(new StaticMeshComponent() {
+            Mesh = Assets.GetMesh("MeshQuad"),
+            Texture = Assets.GetTexture("TexSeal")
+        });
         meshEntity2.AddComponent(new RotatorComponent() { Speed = 3.0f });
         meshEntity2.Transform.Position.X += 2.0f;
 
@@ -146,20 +167,24 @@ public class Game : GameWindow
         cam.FarPlane = 100f;
         cam.ClearColor = Color.White;
         cam.IsOrthograthic = false;
-        cam.ClearColor = Color.DeepSkyBlue;
+        cam.ClearColor = Color.SkyBlue;
         cam.Entity.Transform.Position.Z = 3;
         cam.Entity.Transform.Position.Y = 1;
 
-        _world.AddEntity(meshEntity);
-        _world.AddEntity(meshEntity2);
-        _world.AddEntity(floor);
-        _world.AddEntity(meshEntity3);
-        _world.AddEntity(cameraEntity);
-        _world.CurrentCamera = cam;
+        World.AddEntity(meshEntity);
+        World.AddEntity(meshEntity2);
+        World.AddEntity(floor);
+        World.AddEntity(meshEntity3);
+        World.AddEntity(meshEntity4);
+        World.AddEntity(meshEntity5);
+        World.AddEntity(cameraEntity);
+        World.CurrentCamera = cam;
 
         _renderer.OnLoad();
 
-        _world.OnStart();
+        World.OnStart();
+
+        _editor = new ImGuiEditor(this);
     }
 
     public static void Start()
@@ -171,15 +196,9 @@ public class Game : GameWindow
     {
         base.OnUnload();
 
-        _world.DestroyAll();
+        World.DestroyAll();
         _renderer.OnUnload();
-
-        _mesh.Dispose();
-        _mesh2.Dispose();
-        _texture.Dispose();
-        _texture2.Dispose();
-        _texture3.Dispose();
-        _texture4.Dispose();
+        Assets.UnloadAll();
     }
 
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
@@ -188,66 +207,46 @@ public class Game : GameWindow
 
         GL.Viewport(0, 0, e.Width, e.Height);
 
-        // Tell ImGui of the new size
-        _controller.WindowResized(ClientSize.X, ClientSize.Y);
+        _editor.WindowResized(ClientSize.X, ClientSize.Y);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
 
-        _controller.Update(this, (float)args.Time);
-        if (KeyboardState.IsKeyPressed(Keys.F5))
-        {
-            _showImGui = !_showImGui;
-        }
+        World.ProcessDestroy();
 
-        foreach (var e in _world.Updatables)
+        foreach (var e in World.Updatables)
         {
             e.Update((float)args.Time);
         }
 
+        _editor.Update((float)args.Time);
+    }
+
+    protected override void OnRenderFrame(FrameEventArgs args)
+    {
+        base.OnRenderFrame(args);
+
         // Rendering
-        _renderer.Render(_world);
+        _renderer.Render(World);
 
-        // Enable Docking
-        if (_showImGui)
-        {
-            ImGui.Begin("Controls");
-            ImGui.Text($"FPS: {(int)(1.0 / args.Time)}");
-            ImGui.Checkbox("VSync", ref _vsync);
-            if (_vsync && VSync != VSyncMode.On) VSync = VSyncMode.On;
-            else if (!_vsync && VSync != VSyncMode.Off) VSync = VSyncMode.Off;
-
-            if (ImGui.Button("fff"))
-            {
-                Console.WriteLine("fff");
-            }
-
-            ImGui.End();
-
-            _controller.Render();
-
-            ImGuiController.CheckGLError("End of frame");
-        }
+        _editor.Render((float)args.Time);
 
         SwapBuffers();
-
-        _world.ProcessDestroy();
     }
 
     protected override void OnTextInput(TextInputEventArgs e)
     {
         base.OnTextInput(e);
 
-
-        _controller.PressChar((char)e.Unicode);
+        _editor.PressChar((char)e.Unicode);
     }
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
         base.OnMouseWheel(e);
 
-        _controller.MouseScroll(e.Offset);
+        _editor.MouseScroll(e.Offset);
     }
 }

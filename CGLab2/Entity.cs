@@ -1,6 +1,6 @@
 ﻿public class Entity
 {
-    static ulong NextId = 0;
+    static ulong NextId = 1;
     public ulong Id { get; }
     public bool Destroyed { get; private set; }
 

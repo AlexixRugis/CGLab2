@@ -4,7 +4,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 public class FreeCameraController : Component, IUpdatable
 {
     public float MovementSpeed = 1.0f;
-    public float Sensitivity = 5f;
+    public float Sensitivity = 2000f;
 
     private bool _firstMove = true;
     private Vector2 _lastPos;
@@ -33,6 +33,8 @@ public class FreeCameraController : Component, IUpdatable
                 Game.Instance.CursorState = OpenTK.Windowing.Common.CursorState.Grabbed;
             else
                 Game.Instance.CursorState = OpenTK.Windowing.Common.CursorState.Normal;
+
+            _firstMove = true;
         }
 
         if (_keyboardState.IsKeyDown(Keys.A))
@@ -72,8 +74,10 @@ public class FreeCameraController : Component, IUpdatable
         }
         else
         {
-            var deltaX = _mouseState.X - _lastPos.X;
-            var deltaY = _mouseState.Y - _lastPos.Y;
+            float height = Screen.Height;
+
+            var deltaX = (_mouseState.X - _lastPos.X) / height;
+            var deltaY = (_mouseState.Y - _lastPos.Y) / height;
 
             _lastPos = new Vector2(_mouseState.X, _mouseState.Y);
 

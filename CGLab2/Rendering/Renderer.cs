@@ -21,17 +21,10 @@ public class Renderer
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        string vpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/vert.glsl");
-        string fpath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Shaders/frag.glsl");
-        string vtext = File.ReadAllText(vpath);
-        string ftext = File.ReadAllText(fpath);
-        _shader = new Shader(vtext, ftext);
+        _shader = Game.Instance.Assets.GetShader("ShaderTexUnlit");
     }
 
-    public void OnUnload()
-    {
-        _shader.Dispose();
-    }
+    public void OnUnload() { }
 
     public void Render(World world)
     {
