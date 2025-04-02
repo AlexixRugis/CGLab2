@@ -2,20 +2,29 @@
 
 public sealed class Mesh : IDisposable
 {
+    public struct SubMeshInfo
+    {
+        public int Index; public int Size;
+    }
+
     private VAO _vao;
     private VBO _vbo;
     private EBO _ebo;
+
+    private SubMeshInfo[] _subMeshes;
+    public IReadOnlyList<SubMeshInfo> SubMeshes => _subMeshes;
 
     private int _indicesCount;
 
     public int VAO => _vao.Pointer;
     public int IndicesCount => _indicesCount;
 
-    public Mesh(Vertex[] vertices, uint[] indices)
+    public Mesh(Vertex[] vertices, uint[] indices, SubMeshInfo[] subMeshes)
     {
         BuildMesh(vertices, indices);
 
         _indicesCount = indices.Length;
+        _subMeshes = subMeshes;
     }
 
     public void Bind()

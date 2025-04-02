@@ -1,11 +1,17 @@
-﻿public class StaticMeshComponent : Component, IRenderable
+﻿
+public class StaticMeshComponent : Component, IRenderable
 {
     public Mesh? Mesh { get; set; }
-    public Texture? Texture { get; set; }
+    public Material? Material { get; set; }
 
     public void Render(Renderer renderer, Camera camera)
     {
-        if (Mesh != null && Texture != null)
-            renderer.DrawMesh(Mesh, Texture, Transform.LocalToWorld);
+        if (Mesh != null && Material != null)
+        {
+            for (int i = 0; i < Mesh.SubMeshes.Count; i++)
+            {
+                renderer.DrawMesh(Mesh, Material, i, Transform.LocalToWorld);
+            }
+        }
     }
 }

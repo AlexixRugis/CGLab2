@@ -38,11 +38,22 @@ public class AssetLoader
         throw new InvalidOperationException();
     }
 
-    public void LoadMesh(string name, Vertex[] vertices, uint[] indices)
+    public void LoadMesh(string name, Vertex[] vertices, uint[] indices, Mesh.SubMeshInfo[] subMeshes)
     {
         if (_meshes.ContainsKey(name)) throw new ArgumentException($"Mesh {name} already exists.");
 
-        Mesh mesh = new Mesh(vertices, indices);
+        Mesh mesh = new Mesh(vertices, indices, subMeshes);
+        _meshes.Add(name, mesh);
+    }
+
+    public void LoadMesh(string name, string path)
+    {
+        if (_meshes.ContainsKey(name)) throw new ArgumentException($"Mesh {name} already exists.");
+
+        string fullPath = Path.Combine(Directory.GetCurrentDirectory(), path);
+        AssimpLoader loader = new AssimpLoader();
+
+        Mesh mesh = loader.Load(fullPath, "");
         _meshes.Add(name, mesh);
     }
 

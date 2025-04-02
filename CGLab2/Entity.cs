@@ -6,7 +6,7 @@
 
     public string Name;
 
-    public Transform Transform = new Transform();
+    public Transform Transform { get; }
 
     private List<Component> _components = new();
 
@@ -17,11 +17,18 @@
         Id = NextId++;
         Name = name;
         Destroyed = false;
+
+        Transform = new Transform(this);
     }
 
     public void Destroy()
     {
         Destroyed = true;
+
+        foreach (var c in Transform.Children)
+        {
+            c.Entity.Destroy();
+        }
     }
 
     public void AddComponent(Component component)

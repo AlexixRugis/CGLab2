@@ -11,8 +11,9 @@ public class ImGuiEditor
 
     private ImGuiController _controller;
     private bool _showImGui = false;
-    private ulong _selectedEntity = 0;
     private bool _vsync = false;
+
+    private WeakReference<Entity> _selected = null;
 
     public ImGuiEditor(Game game)
     {
@@ -52,47 +53,37 @@ public class ImGuiEditor
 
         ImGui.End();
 
-        Entity? selected = null;
         ImGui.Begin("Objects");
         foreach (var e in _world.Entities)
         {
-            if (e.Id == _selectedEntity)
-            {
-                ImGui.TextColored(new System.Numerics.Vector4(0.0f, 1.0f, 1.0f, 1.0f), $"{e.Id} {e.Name}");
-                selected = e;
-            }
-            else
-            {
-                if (ImGui.Button($"{e.Id} {e.Name}"))
-                {
-                    _selectedEntity = e.Id;
-                }
-            }
+            if (e.Transform.Parent == null)
+                DrawEntityTree(e);
+
         }
         ImGui.End();
 
-        if (selected != null)
+        if (_selected != null && _selected.TryGetTarget(out Entity selected))
         {
 
             ImGui.Begin("Details");
 
-            if (ImGui.SmallButton("X")) _selectedEntity = 0;
+            if (ImGui.SmallButton("X")) _selected = null;
             ImGui.Text($"Id: {selected.Id}");
             ImGui.Text($"Id: {selected.Name}");
             ImGui.Separator();
             ImGui.Text("Transform");
 
-            System.Numerics.Vector3 pos = (System.Numerics.Vector3)selected.Transform.Position;
+            System.Numerics.Vector3 pos = (System.Numerics.Vector3)selected.Transform.LocalPosition;
             if (ImGui.InputFloat3("Position", ref pos))
-                selected.Transform.Position = (Vector3)pos;
+                selected.Transform.LocalPosition = (Vector3)pos;
 
-            System.Numerics.Vector3 rot = (System.Numerics.Vector3)selected.Transform.Rotation.ToEulerAngles();
+            System.Numerics.Vector3 rot = (System.Numerics.Vector3)selected.Transform.LocalRotation.ToEulerAngles();
             if (ImGui.InputFloat3("Rotation", ref rot))
-                selected.Transform.Rotation = Quaternion.FromEulerAngles((Vector3)rot);
+                selected.Transform.LocalRotation = Quaternion.FromEulerAngles((Vector3)rot);
 
-            System.Numerics.Vector3 scale = (System.Numerics.Vector3)selected.Transform.Scale;
+            System.Numerics.Vector3 scale = (System.Numerics.Vector3)selected.Transform.LocalScale;
             if (ImGui.InputFloat3("Scale", ref scale))
-                selected.Transform.Scale = (Vector3)scale;
+                selected.Transform.LocalScale = (Vector3)scale;
 
             ImGui.Text("COMPONENTS");
             ImGui.Separator();
@@ -112,13 +103,38 @@ public class ImGuiEditor
         ImGuiController.CheckGLError("End of frame");
     }
 
-    internal void PressChar(char unicode)
+    public void PressChar(char unicode)
     {
         _controller.PressChar(unicode);
     }
 
-    internal void MouseScroll(Vector2 offset)
+    public void MouseScroll(Vector2 offset)
     {
         _controller.MouseScroll(offset);
+    }
+
+    private void DrawEntityTree(Entity e)
+    {
+        bool opened;
+        if (e.Transform.Children.Count == 0)
+            opened = ImGui.TreeNodeEx($"{e.Id} {e.Name}", ImGuiTreeNodeFlags.Leaf);
+        else
+            opened = ImGui.TreeNode($"{e.Id} {e.Name}");
+
+        ImGui.SameLine();
+        if (ImGui.Button($"Details {e.Id}"))
+        {
+            _selected = new WeakReference<Entity>(e);
+        }
+
+        if (opened)
+        {
+            foreach (var c in e.Transform.Children)
+            {
+                DrawEntityTree(c.Entity);
+            }
+            ImGui.TreePop();
+        }
+
     }
 }

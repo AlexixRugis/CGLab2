@@ -107,56 +107,67 @@ public class Game : GameWindow
         Assets.LoadTexture("TexBeach", "Resources/Textures/beach.png", true);
         Assets.LoadTexture("TexPalm", "Resources/Textures/palm.png", true);
 
-        Assets.LoadMesh("MeshQuad", _vertices, _indices);
-        Assets.LoadMesh("MeshPalm", _vertices2, _indices2);
+        Assets.LoadMesh("MeshQuad", _vertices, _indices, new Mesh.SubMeshInfo[1] { new() { Index = 0, Size = 6 } });
+        Assets.LoadMesh("MeshPalm", _vertices2, _indices2, new Mesh.SubMeshInfo[1] { new() { Index = 0, Size = 12 } });
+        Assets.LoadMesh("MeshCylinder", "Resources/Models/cylinder.fbx");
+
+        Entity cylinder = new Entity("Cylinder");
+        cylinder.AddComponent(new StaticMeshComponent()
+        {
+            Mesh = Assets.GetMesh("MeshCylinder"),
+            Material = new UnlitTexturedMaterial(Assets.GetTexture("TexBeach"))
+        });
+        cylinder.Transform.LocalPosition -= Vector3.UnitZ * 3f;
 
         Entity floor = new Entity("Floor");
         floor.AddComponent(new StaticMeshComponent() {
-            Mesh = Assets.GetMesh("MeshQuad"), 
-            Texture = Assets.GetTexture("TexBeach")
+            Mesh = Assets.GetMesh("MeshQuad"),
+            Material = new UnlitTexturedMaterial(Assets.GetTexture("TexBeach"))
         });
-        floor.Transform.Rotation = Quaternion.FromEulerAngles(0.5f * MathF.PI, 0.0f, 0.0f);
-        floor.Transform.Position.Y = -0.5f;
-        floor.Transform.Scale = new Vector3(15.0f, 10.0f, 1.0f);
+        floor.Transform.LocalRotation = Quaternion.FromEulerAngles(0.5f * MathF.PI, 0.0f, 0.0f);
+        floor.Transform.LocalPosition += Vector3.UnitY * -0.5f;
+        floor.Transform.LocalScale = new Vector3(15.0f, 10.0f, 1.0f);
 
         Entity meshEntity3 = new Entity("Mesh3");
-        meshEntity3.Transform.Position.X -= 2.0f;
+        meshEntity3.Transform.LocalPosition -= Vector3.UnitX * 2.0f;
         meshEntity3.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshPalm"),
-            Texture = Assets.GetTexture("TexPalm")
+            Material = new UnlitTexturedMaterial(Assets.GetTexture("TexPalm"))
         });
 
         Entity meshEntity4 = new Entity("Mesh4");
-        meshEntity4.Transform.Position.X += 4.0f;
+        meshEntity4.Transform.LocalPosition += Vector3.UnitX * 4.0f;
         meshEntity4.AddComponent(new StaticMeshComponent()
         {
             Mesh = Assets.GetMesh("MeshPalm"),
-            Texture = Assets.GetTexture("TexPalm")
+            Material = new UnlitTexturedMaterial(Assets.GetTexture("TexPalm"))
         });
 
         Entity meshEntity5 = new Entity("Mesh5");
-        meshEntity5.Transform.Position.X -= 1.0f;
-        meshEntity5.Transform.Position.Z -= 2.0f;
+        meshEntity5.Transform.LocalPosition -= Vector3.UnitX * 1.0f;
+        meshEntity5.Transform.LocalPosition -= Vector3.UnitZ * 2.0f;
         meshEntity5.AddComponent(new StaticMeshComponent()
         {
             Mesh = Assets.GetMesh("MeshPalm"),
-            Texture = Assets.GetTexture("TexPalm")
+            Material = new UnlitTexturedMaterial(Assets.GetTexture("TexPalm"))
         });
 
         Entity meshEntity = new Entity("Mesh");
         meshEntity.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshQuad"),
-            Texture = Assets.GetTexture("TexCat")
+            Material = new UnlitTexturedMaterial(Assets.GetTexture("TexCat"))
         });
         meshEntity.AddComponent(new RotatorComponent() { Speed = 1.0f });
 
         Entity meshEntity2 = new Entity("Mesh2");
         meshEntity2.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshQuad"),
-            Texture = Assets.GetTexture("TexSeal")
+            Material = new UnlitTexturedMaterial(Assets.GetTexture("TexSeal"))
         });
         meshEntity2.AddComponent(new RotatorComponent() { Speed = 3.0f });
-        meshEntity2.Transform.Position.X += 2.0f;
+        meshEntity2.Transform.LocalPosition += Vector3.UnitX * 2.0f;
+
+        meshEntity2.Transform.SetParent(meshEntity.Transform);
 
         Entity cameraEntity = new Entity("Camera");
         Camera cam = new Camera();
@@ -168,9 +179,10 @@ public class Game : GameWindow
         cam.ClearColor = Color.White;
         cam.IsOrthograthic = false;
         cam.ClearColor = Color.SkyBlue;
-        cam.Entity.Transform.Position.Z = 3;
-        cam.Entity.Transform.Position.Y = 1;
+        cam.Entity.Transform.LocalPosition += Vector3.UnitZ * 3;
+        cam.Entity.Transform.LocalPosition += Vector3.UnitY * 1;
 
+        World.AddEntity(cylinder);
         World.AddEntity(meshEntity);
         World.AddEntity(meshEntity2);
         World.AddEntity(floor);

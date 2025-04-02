@@ -6,11 +6,10 @@ public class Renderer
     struct DrawRequest
     {
         public Mesh Mesh;
-        public Texture Texture;
+        public Material Material;
         public Matrix4 ModelMatrix;
+        public int SubMeshIndex;
     }
-
-    private Shader _shader;
 
     private List<DrawRequest> _drawRequests = new List<DrawRequest>();
 
@@ -20,8 +19,6 @@ public class Renderer
         GL.Enable(EnableCap.DepthTest);
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-        _shader = Game.Instance.Assets.GetShader("ShaderTexUnlit");
     }
 
     public void OnUnload() { }
@@ -41,25 +38,36 @@ public class Renderer
         GL.ClearColor(camera.ClearColor);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        _shader.Bind();
         Matrix4 view = camera.Entity.Transform.WorldToLocal;
         Matrix4 proj = camera.GetProjectionMatrix();
-        _shader.SetMatrix("_View", ref view);
-        _shader.SetMatrix("_Projection", ref proj);
 
         for (int i = 0; i < _drawRequests.Count; i++)
         {
             DrawRequest dr = _drawRequests[i];
 
-            _shader.SetMatrix("_Model", ref dr.ModelMatrix);
-            dr.Texture.Bind(TextureUnit.Texture0);
-            dr.Mesh.Bind();
-            GL.DrawElements(PrimitiveType.Triangles, dr.Mesh.IndicesCount, DrawElementsType.UnsignedInt, 0);
+            Mesh mesh = dr.Mesh;
+            mesh.Bind();
+            Mesh.SubMeshInfo subMesh = mesh.SubMeshes[dr.SubMeshIndex];
+
+            dr.Material.Use();
+            Shader s = dr.Material.Shader;
+            s.SetMatrix("_View", ref view);
+            s.SetMatrix("_Projection", ref proj);
+            s.SetMatrix("_Model", ref dr.ModelMatrix);
+
+            GL.DrawElements(PrimitiveType.Triangles, subMesh.Size, DrawElementsType.UnsignedInt, subMesh.Index);
+
+            if (GL.GetError() != ErrorCode.NoError)
+            {
+                Console.WriteLine("e");
+            }
         }
     }
 
-    public void DrawMesh(Mesh mesh, Texture tex, Matrix4 transform)
+    public void DrawMesh(Mesh mesh, Material material, int subMeshIndex, Matrix4 transform)
     {
-        _drawRequests.Add(new DrawRequest { Mesh = mesh, ModelMatrix = transform, Texture = tex });
+        _drawRequests.Add(new DrawRequest { 
+            Mesh = mesh, ModelMatrix = transform, 
+            Material = material, SubMeshIndex = subMeshIndex });
     }
 }

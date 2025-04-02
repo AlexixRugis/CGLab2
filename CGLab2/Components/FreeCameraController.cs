@@ -39,32 +39,32 @@ public class FreeCameraController : Component, IUpdatable
 
         if (_keyboardState.IsKeyDown(Keys.A))
         {
-            Entity.Transform.Position -= right * deltaTime * MovementSpeed;
+            Entity.Transform.LocalPosition -= right * deltaTime * MovementSpeed;
         }
 
         if (_keyboardState.IsKeyDown(Keys.D))
         {
-            Entity.Transform.Position += right * deltaTime * MovementSpeed;
+            Entity.Transform.LocalPosition += right * deltaTime * MovementSpeed;
         }
 
         if (_keyboardState.IsKeyDown(Keys.W))
         {
-            Entity.Transform.Position -= forward * deltaTime * MovementSpeed;
+            Entity.Transform.LocalPosition -= forward * deltaTime * MovementSpeed;
         }
 
         if (_keyboardState.IsKeyDown(Keys.S))
         {
-            Entity.Transform.Position += forward * deltaTime * MovementSpeed;
+            Entity.Transform.LocalPosition += forward * deltaTime * MovementSpeed;
         }
 
         if (_keyboardState.IsKeyDown(Keys.Space))
         {
-            Entity.Transform.Position += up * deltaTime * MovementSpeed;
+            Entity.Transform.LocalPosition += up * deltaTime * MovementSpeed;
         }
 
         if (_keyboardState.IsKeyDown(Keys.LeftShift))
         {
-            Entity.Transform.Position -= up * deltaTime * MovementSpeed;
+            Entity.Transform.LocalPosition -= up * deltaTime * MovementSpeed;
         }
 
         if (_firstMove)
@@ -93,10 +93,15 @@ public class FreeCameraController : Component, IUpdatable
 
             _yaw -= deltaX * Sensitivity * deltaTime;
 
+            if (_yaw > 360.0f || _yaw < -360.0f) _yaw %= 360.0f;
+
             Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegToRad * _yaw);
             q *= Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegToRad * _pitch);
 
-            Entity.Transform.Rotation = q;
+            Entity.Transform.LocalRotation = q;
+
+            if (float.IsNaN(_yaw)) _yaw = 0;
+            if (float.IsNaN(_pitch)) _pitch = 0;
         }
 
     }
