@@ -54,11 +54,9 @@ public class ImGuiEditor
         ImGui.End();
 
         ImGui.Begin("Objects");
-        foreach (var e in _world.Entities)
+        foreach (var e in _world.RootEntites)
         {
-            if (e.Transform.Parent == null)
-                DrawEntityTree(e);
-
+            DrawEntityTree(e);
         }
         ImGui.End();
 

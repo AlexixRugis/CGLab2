@@ -6,18 +6,21 @@
 
     public string Name;
 
+    public World? World { get; }
+
     public Transform Transform { get; }
 
     private List<Component> _components = new();
 
     public IEnumerable<Component> Components => _components;
 
-    public Entity(string name)
+    public Entity(World? world, string name)
     {
         Id = NextId++;
         Name = name;
         Destroyed = false;
 
+        World = world;
         Transform = new Transform(this);
     }
 
@@ -36,6 +39,8 @@
         if (component == null) throw new ArgumentNullException(nameof(component));
         if (component.Entity != null | _components.Contains(component))
             throw new ArgumentException("Component already added to entity");
+
+        World?.ProcessComponentAdding(component);
 
         _components.Add(component);
         component.Entity = this;

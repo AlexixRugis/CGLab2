@@ -51,10 +51,10 @@ public class AssetLoader
         if (_meshes.ContainsKey(name)) throw new ArgumentException($"Mesh {name} already exists.");
 
         string fullPath = Path.Combine(Directory.GetCurrentDirectory(), path);
-        AssimpLoader loader = new AssimpLoader();
+        //AssimpLoader loader = new AssimpLoader();
 
-        Mesh mesh = loader.Load(fullPath, "");
-        _meshes.Add(name, mesh);
+        //Mesh mesh = loader.Load(fullPath, "");
+        //_meshes.Add(name, mesh);
     }
 
     public Mesh GetMesh(string name)

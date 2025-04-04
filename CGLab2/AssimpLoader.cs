@@ -2,32 +2,88 @@
 
 public class AssimpLoader
 {
-    public Mesh Load(string resourcePath, string texturesDir)
+    private AssetLoader _assetLoader;
+
+    public AssimpLoader(AssetLoader assets)
+    {
+        _assetLoader = assets;
+    }
+
+    public Entity Load(string resourcePath, string texturesDir, float scale = 0.01f)
     {
         PostProcessSteps steps = PostProcessSteps.JoinIdenticalVertices
             | PostProcessSteps.Triangulate
             | PostProcessSteps.FixInFacingNormals
             | PostProcessSteps.GenerateNormals
             | PostProcessSteps.GenerateUVCoords;
-        return Load(resourcePath, texturesDir, steps);
+        return Load(resourcePath, texturesDir, steps, scale);
     }
 
-    public Mesh Load(string resourcePath, string texturesDir, PostProcessSteps postProcessSteps)
+    public Entity Load(string resourcePath, string texturesDir, PostProcessSteps postProcessSteps, float scale = 0.01f)
     {
         var importer = new AssimpContext();
         var scene = importer.ImportFile(resourcePath, postProcessSteps);
 
-        return ProcessMeshes(scene);
+        Entity e = ProcessNode(scene.RootNode, scene);
+        e.Transform.LocalScale *= scale;
+        return e;
     }
 
-    private Mesh ProcessMeshes(Assimp.Scene scene)
+    private Entity ProcessNode(Assimp.Node node, Assimp.Scene scene)
+    {
+        World world = Game.Instance.World;
+
+        Entity e = world.CreateEntity(node.Name);
+        if (node.MeshCount > 0) {
+            e.AddComponent(ProcessMeshes(scene, node.MeshIndices));
+        }
+
+        Matrix4x4 tr = node.Transform;
+        e.Transform.LocalPosition = new OpenTK.Mathematics.Vector3(tr.A4, tr.B4, tr.C4);
+        float scaleX = new Vector3D(tr.A1, tr.B1, tr.C1).Length();
+        float scaleY = new Vector3D(tr.A2, tr.B2, tr.C2).Length();
+        float scaleZ = new Vector3D(tr.A3, tr.B3, tr.C3).Length();
+        e.Transform.LocalScale = new OpenTK.Mathematics.Vector3(scaleX, scaleY, scaleZ);
+
+        OpenTK.Mathematics.Matrix3 rot = new OpenTK.Mathematics.Matrix3();
+        rot.M11 = tr.A1 / scaleX; rot.M12 = tr.B1 / scaleX; rot.M13 = tr.C1 / scaleX;
+        rot.M21 = tr.A2 / scaleY; rot.M22 = tr.B2 / scaleY; rot.M23 = tr.C2 / scaleY;
+        rot.M31 = tr.A3 / scaleZ; rot.M32 = tr.B3 / scaleZ; rot.M33 = tr.C3 / scaleZ;
+        e.Transform.LocalRotation = OpenTK.Mathematics.Quaternion.FromMatrix(rot);
+
+        foreach (var c in node.Children)
+        {
+            Entity ce = ProcessNode(c, scene);
+            ce.Transform.SetParent(e.Transform);
+        }
+
+        return e;
+    }
+
+    private StaticMeshComponent ProcessMeshes(Assimp.Scene scene, List<int> meshIndices)
     {
         List<Vertex> vertices = new List<Vertex>();
         List<uint> indices = new List<uint>();
         List<Mesh.SubMeshInfo> subMeshes = new List<Mesh.SubMeshInfo>();
+        List<Material> materials = new List<Material>();
 
-        foreach (var aiMesh in scene.Meshes)
+        foreach (var ind in meshIndices)
         {
+            var aiMesh = scene.Meshes[ind];
+
+            int material = aiMesh.MaterialIndex;
+
+            Color4D col = scene.Materials[material].ColorDiffuse;
+            if (scene.Materials[material].HasTextureDiffuse)
+            {
+                Console.WriteLine(scene.Materials[material].TextureDiffuse.FilePath);
+            }
+            UnlitTexturedMaterial mat = new UnlitTexturedMaterial(Game.Instance.Assets.GetTexture("Blank"))
+            {
+                Color = System.Drawing.Color.FromArgb((int)(col.A * 255.0f), (int)(col.R * 255.0f), (int)(col.G * 255.0f), (int)(col.B * 255.0f))
+            };
+            materials.Add(mat);
+
             int vCount = aiMesh.Vertices.Count;
             int iCount = aiMesh.Faces.Count * 3;
 
@@ -54,6 +110,13 @@ public class AssimpLoader
             }
         }
 
-        return new Mesh(vertices.ToArray(), indices.ToArray(), subMeshes.ToArray());
+        string meshAssetName = $"Mesh_{Guid.NewGuid()}";
+        _assetLoader.LoadMesh(meshAssetName, vertices.ToArray(), indices.ToArray(), subMeshes.ToArray());
+
+        return new StaticMeshComponent()
+        {
+            Mesh = _assetLoader.GetMesh(meshAssetName),
+            Materials = materials
+        };
     }
 }

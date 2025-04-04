@@ -1,9 +1,8 @@
 ﻿using OpenTK.Mathematics;
-using System.Text;
 
 public class Transform
 {
-    private WeakReference<Entity> _entity;
+    private Entity _entity;
     private Transform? _parent;
     private List<Transform> _children;
 
@@ -41,15 +40,7 @@ public class Transform
     public Vector3 Up => Matrix3.CreateFromQuaternion(_localRotation).Row1;
     public Vector3 Right => Matrix3.CreateFromQuaternion(_localRotation).Row0;
 
-    public Entity Entity
-    {
-        get
-        {
-            Entity e;
-            if (_entity.TryGetTarget(out e)) return e;
-            throw new InvalidOperationException();
-        }
-    }
+    public Entity Entity => _entity;
 
     public Transform? Parent => _parent;
     public IReadOnlyList<Transform> Children => _children;
@@ -64,7 +55,7 @@ public class Transform
         _localScale = Vector3.One;
         _dirty = true;
 
-        _entity = new WeakReference<Entity>(entity);
+        _entity = entity;
     }
 
     public void SetParent(Transform? parent)
@@ -78,11 +69,19 @@ public class Transform
             _parent.RemoveChild(this);
             _parent = null;
         }
+        else
+        {
+            Entity.World?.RemoveRootEntity(Entity);
+        }
 
         if (parent != null)
         {
             _parent = parent;
             _parent.AddChild(this);
+        }
+        else
+        {
+            Entity.World?.AddRootEntity(Entity);
         }
 
         MarkDirty();
