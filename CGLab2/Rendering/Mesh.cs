@@ -46,8 +46,9 @@ public sealed class Mesh : IDisposable
         _ebo.Bind();
 
         _vbo = new VBO(vertices);
-        _vao.LinkAttribute(_vbo, 0, 3, VertexAttribPointerType.Float, sizeof(float) * 5, 0);
-        _vao.LinkAttribute(_vbo, 1, 2, VertexAttribPointerType.Float, sizeof(float) * 5, sizeof(float) * 3);
+        _vao.LinkAttribute(_vbo, 0, 3, VertexAttribPointerType.Float, Vertex.Size, 0);
+        _vao.LinkAttribute(_vbo, 1, 3, VertexAttribPointerType.Float, Vertex.Size, sizeof(float) * 3);
+        _vao.LinkAttribute(_vbo, 2, 2, VertexAttribPointerType.Float, Vertex.Size, sizeof(float) * 6);
 
         _vao.Unbind();
         _ebo.Unbind();

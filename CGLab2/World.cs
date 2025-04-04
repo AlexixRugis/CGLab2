@@ -1,10 +1,13 @@
-﻿public class World
+﻿using OpenTK.Mathematics;
+
+public class World
 {
     private List<Entity> _entities = new List<Entity>();
     private List<Entity> _rootEntities = new List<Entity>();
     private List<IRenderable> _renderers = new List<IRenderable>();
     private List<IUpdatable> _updates = new List<IUpdatable>();
 
+    public Color4 AmbientColor { get; set; } = Color4.Gray;
     public Camera CurrentCamera { get; set; }
     public bool Started { get; private set; } = false;
 

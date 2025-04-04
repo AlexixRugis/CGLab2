@@ -78,7 +78,7 @@ public class AssimpLoader
             {
                 Console.WriteLine(scene.Materials[material].TextureDiffuse.FilePath);
             }
-            UnlitTexturedMaterial mat = new UnlitTexturedMaterial(Game.Instance.Assets.GetTexture("Blank"))
+            LitTexturedMaterial mat = new LitTexturedMaterial(Game.Instance.Assets.GetTexture("Blank"))
             {
                 Color = System.Drawing.Color.FromArgb((int)(col.A * 255.0f), (int)(col.R * 255.0f), (int)(col.G * 255.0f), (int)(col.B * 255.0f))
             };
@@ -95,6 +95,9 @@ public class AssimpLoader
                 v.Position.X = aiMesh.Vertices[i].X;
                 v.Position.Y = aiMesh.Vertices[i].Y;
                 v.Position.Z = aiMesh.Vertices[i].Z;
+                v.Normal.X = aiMesh.Normals[i].X;
+                v.Normal.Y = aiMesh.Normals[i].Y;
+                v.Normal.Z = aiMesh.Normals[i].Z;
                 v.UV.X = aiMesh.TextureCoordinateChannels[0][i].X;
                 v.UV.Y = aiMesh.TextureCoordinateChannels[0][i].Y;
                 vertices.Add(v);

@@ -103,6 +103,10 @@ public class Game : GameWindow
             "Resources/Shaders/vert.glsl",
             "Resources/Shaders/frag.glsl");
 
+        Assets.LoadShader("ShaderTexLit",
+            "Resources/Shaders/vertLit.glsl",
+            "Resources/Shaders/fragLit.glsl");
+
         Assets.LoadTexture("TexCat", "Resources/Textures/cat.png", true);
         Assets.LoadTexture("TexSeal", "Resources/Textures/seal.jpg", true);
         Assets.LoadTexture("TexBeach", "Resources/Textures/beach.png", true);
@@ -119,32 +123,32 @@ public class Game : GameWindow
         });
 
         Assets.LoadTexture("TexBaloon1", "Resources/Models/Baloon/textures/Viva_Balloon_Colors_Mat1.jpg", true);
-        World.FindEntity("viva_baloon_material_1").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloon1"));
+        World.FindEntity("viva_baloon_material_1").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon1"));
         Assets.LoadTexture("TexBaloon2", "Resources/Models/Baloon/textures/Mouth_Mat2.jpg", true);
-        World.FindEntity("viva_baloon_material_2").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloon2"));
+        World.FindEntity("viva_baloon_material_2").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon2"));
         Assets.LoadTexture("TexBaloon3", "Resources/Models/Baloon/textures/Wood_Bottom_Mat3.jpg", true);
-        World.FindEntity("viva_baloon_material_3").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloon3"));
+        World.FindEntity("viva_baloon_material_3").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon3"));
         Assets.LoadTexture("TexBaloon4", "Resources/Models/Baloon/textures/Wicker_Mat4.jpg", true);
-        World.FindEntity("viva_baloon_material_4").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloon4"));
+        World.FindEntity("viva_baloon_material_4").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon4"));
         Assets.LoadTexture("TexBaloon7", "Resources/Models/Baloon/textures/Railing_Leather_Mat_7.jpg", true);
-        World.FindEntity("viva_baloon_material_7").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloon7"));
+        World.FindEntity("viva_baloon_material_7").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon7"));
         Assets.LoadTexture("TexBaloon13", "Resources/Models/Baloon/textures/light_brown_leatherMat13.jpg", true);
-        World.FindEntity("viva_baloon_material_13").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloon13"));
+        World.FindEntity("viva_baloon_material_13").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon13"));
         Assets.LoadTexture("TexBaloonSilver", "Resources/Models/Baloon/textures/PropaneSilver4_tanksMat_8.jpg", true);
-        World.FindEntity("viva_baloon_silver").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonSilver"));
-        World.FindEntity("viva_baloon_tanccover").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonSilver"));
+        World.FindEntity("viva_baloon_silver").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonSilver"));
+        World.FindEntity("viva_baloon_tanccover").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonSilver"));
         Assets.LoadTexture("TexBaloonBALENV", "Resources/Models/Baloon/textures/balenv_blue.jpg", true);
-        World.FindEntity("viva_baloon_balenv").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonBALENV"));
+        World.FindEntity("viva_baloon_balenv").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonBALENV"));
         Assets.LoadTexture("TexBaloonRED", "Resources/Models/Baloon/textures/RED.jpg", true);
-        World.FindEntity("viva_baloon_RED").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonRED"));
-        World.FindEntity("viva_baloon_RedBurnerSteel").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonRED"));
+        World.FindEntity("viva_baloon_RED").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonRED"));
+        World.FindEntity("viva_baloon_RedBurnerSteel").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonRED"));
         Assets.LoadTexture("TexBaloon17", "Resources/Models/Baloon/textures/Scoop_FabricMat_17.jpg", true);
-        World.FindEntity("viva_baloon_material_17").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloon17"));
+        World.FindEntity("viva_baloon_material_17").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon17"));
         Assets.LoadTexture("TexBaloonCables", "Resources/Models/Baloon/textures/SteelCables36_40_41_42.jpg", true);
-        World.FindEntity("viva_baloon_material_36").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
-        World.FindEntity("viva_baloon_material_40").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
-        World.FindEntity("viva_baloon_material_41").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
-        World.FindEntity("viva_baloon_material_42").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
+        World.FindEntity("viva_baloon_material_36").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
+        World.FindEntity("viva_baloon_material_40").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
+        World.FindEntity("viva_baloon_material_41").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
+        World.FindEntity("viva_baloon_material_42").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
 
         Entity potion = new AssimpLoader(Assets).Load(Path.Combine(Directory.GetCurrentDirectory(), "Resources/Models/potion1.fbx"), "");
         potion.Transform.LocalPosition = new Vector3(5.0f, 0.0f, -2f);
@@ -153,7 +157,7 @@ public class Game : GameWindow
         Entity floor = World.CreateEntity("Floor");
         floor.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshQuad"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("TexBeach")) }
+            Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexBeach")) }
         });
         floor.Transform.LocalRotation = Quaternion.FromEulerAngles(0.5f * MathF.PI, 0.0f, 0.0f);
         floor.Transform.LocalPosition += Vector3.UnitY * -0.5f;
@@ -163,7 +167,7 @@ public class Game : GameWindow
         palm1.Transform.LocalPosition -= Vector3.UnitX * 2.0f;
         palm1.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshPalm"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("TexPalm")) }
+            Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexPalm")) }
         });
 
         Entity palm2 = World.CreateEntity("Palm2");
@@ -171,7 +175,7 @@ public class Game : GameWindow
         palm2.AddComponent(new StaticMeshComponent()
         {
             Mesh = Assets.GetMesh("MeshPalm"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("TexPalm")) }
+            Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexPalm")) }
         });
 
         Entity palm3 = World.CreateEntity("Palm3");
@@ -180,20 +184,20 @@ public class Game : GameWindow
         palm3.AddComponent(new StaticMeshComponent()
         {
             Mesh = Assets.GetMesh("MeshPalm"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("TexPalm")) }
+            Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexPalm")) }
         });
 
         Entity cat = World.CreateEntity("Cat");
         cat.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshQuad"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("TexCat")) }
+            Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexCat")) }
         });
         cat.AddComponent(new RotatorComponent() { Speed = 1.0f });
 
         Entity seal = World.CreateEntity("Seal", cat);
         seal.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshQuad"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("TexSeal")) }
+            Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexSeal")) }
         });
         seal.AddComponent(new RotatorComponent() { Speed = 3.0f });
         seal.Transform.LocalPosition += Vector3.UnitX * 2.0f;
