@@ -31,7 +31,7 @@ public class AssetLoader
     {
         if (_textures.ContainsKey(name)) throw new ArgumentException($"Texture {name} already exists.");
 
-        Texture tex = new Texture(new System.Drawing.Bitmap(path), generateMipmaps);
+        Texture tex = new Texture(path, generateMipmaps);
 
         _textures.Add(name, tex);
     }

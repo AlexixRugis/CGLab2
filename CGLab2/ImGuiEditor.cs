@@ -51,6 +51,13 @@ public class ImGuiEditor
             Console.WriteLine("fff");
         }
 
+        Color4 ambC = _world.AmbientColor;
+        System.Numerics.Vector3 col = new System.Numerics.Vector3(ambC.R, ambC.G, ambC.B);
+        if (ImGui.ColorPicker3("Ambient", ref col))
+        {
+            _world.AmbientColor = new Color4(col.X, col.Y, col.Z, 255);
+        }
+
         ImGui.End();
 
         ImGui.Begin("Objects");

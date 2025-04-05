@@ -37,38 +37,16 @@ public class Game : GameWindow
 
     private readonly Vertex[] _vertices =
     {
-        new Vertex() { Position = new Vector3(0.5f, 0.5f, 0.0f), UV = new Vector2(1.0f,0.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
-        new Vertex() { Position = new Vector3(0.5f, -0.5f, 0.0f), UV = new Vector2(1.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
-        new Vertex() { Position = new Vector3(-0.5f, -0.5f, 0.0f), UV = new Vector2(0.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
-        new Vertex() { Position = new Vector3(-0.5f, 0.5f, 0.0f), UV = new Vector2(0.0f,0.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) }
-    };
-
-    private readonly Vertex[] _vertices2 =
-    {
-        new Vertex() { Position = new Vector3(0.5f, 2.5f, 0.5f), UV = new Vector2(1.0f,0.0f), Normal = new Vector3(-0.5f, 0.0f, 0.5f).Normalized() },
-        new Vertex() { Position = new Vector3(0.5f, -0.5f, 0.5f), UV = new Vector2(1.0f,1.0f), Normal = new Vector3(-0.5f, 0.0f, 0.5f).Normalized() },
-        new Vertex() { Position = new Vector3(-0.5f, -0.5f, -0.5f), UV = new Vector2(0.0f,1.0f), Normal = new Vector3(-0.5f, 0.0f, 0.5f).Normalized() },
-        new Vertex() { Position = new Vector3(-0.5f, 2.5f, -0.5f), UV = new Vector2(0.0f,0.0f), Normal = new Vector3(-0.5f, 0.0f, 0.5f).Normalized() },
-
-        new Vertex() { Position = new Vector3(0.5f, 2.5f, -0.5f), UV = new Vector2(1.0f,0.0f), Normal = new Vector3(0.5f, 0.0f, 0.5f).Normalized() },
-        new Vertex() { Position = new Vector3(0.5f, -0.5f, -0.5f), UV = new Vector2(1.0f,1.0f), Normal = new Vector3(0.5f, 0.0f, 0.5f).Normalized() },
-        new Vertex() { Position = new Vector3(-0.5f, -0.5f, 0.5f), UV = new Vector2(0.0f,1.0f), Normal = new Vector3(0.5f, 0.0f, 0.5f).Normalized() },
-        new Vertex() { Position = new Vector3(-0.5f, 2.5f, 0.5f), UV = new Vector2(0.0f,0.0f), Normal = new Vector3(0.5f, 0.0f, 0.5f).Normalized() },
+        new Vertex() { Position = new Vector3(0.5f, 0.5f, 0.0f), UV = new Vector2(1.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
+        new Vertex() { Position = new Vector3(0.5f, -0.5f, 0.0f), UV = new Vector2(1.0f,0.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, -0.5f, 0.0f), UV = new Vector2(0.0f,0.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
+        new Vertex() { Position = new Vector3(-0.5f, 0.5f, 0.0f), UV = new Vector2(0.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) }
     };
 
     private readonly uint[] _indices =
     {
         0, 1, 3,
         1, 2, 3
-    };
-
-    private readonly uint[] _indices2 =
-    {
-        0, 1, 3,
-        1, 2, 3,
-
-        4, 5, 7,
-        5, 6, 7
     };
 
     private int _counter = 0;
@@ -108,23 +86,30 @@ public class Game : GameWindow
             "Resources/Shaders/fragSkybox.glsl");
 
         Assets.LoadCubemap("Skybox", new string[] {
-        "Resources/Textures/Skybox/Epic_BlueSunset_Cam_2_Left+X.png",
-        "Resources/Textures/Skybox/Epic_BlueSunset_Cam_3_Right-X.png",
-        "Resources/Textures/Skybox/Epic_BlueSunset_Cam_4_Up+Y.png",
-        "Resources/Textures/Skybox/Epic_BlueSunset_Cam_5_Down-Y.png",
-        "Resources/Textures/Skybox/Epic_BlueSunset_Cam_0_Front+Z.png",
-        "Resources/Textures/Skybox/Epic_BlueSunset_Cam_1_Back-Z.png",}, true);
+        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_2_Left+X.png",
+        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_3_Right-X.png",
+        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_4_Up+Y.png",
+        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_5_Down-Y.png",
+        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_0_Front+Z.png",
+        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_1_Back-Z.png",}, true);
 
         Assets.LoadTexture("TexCat", "Resources/Textures/cat.png", true);
         Assets.LoadTexture("TexSeal", "Resources/Textures/seal.jpg", true);
-        Assets.LoadTexture("TexBeach", "Resources/Textures/beach.png", true);
-        Assets.LoadTexture("TexPalm", "Resources/Textures/palm.png", true);
         Assets.LoadTexture("Blank", "Resources/Textures/blank.png", false);
 
         Assets.LoadMesh("MeshQuad", _vertices, _indices, new Mesh.SubMeshInfo[1] { new() { Index = 0, Size = 6 } });
-        Assets.LoadMesh("MeshPalm", _vertices2, _indices2, new Mesh.SubMeshInfo[1] { new() { Index = 0, Size = 12 } });
 
         AssimpLoader loader = new AssimpLoader(Assets);
+
+        Assets.LoadEntity("Kapadokya", "Resources/Models/Kapadokya/muze1M.obj");
+        Assets.LoadTexture("KapadokyaTex", "Resources/Models/Kapadokya/muze1M.jpg", true);
+        Entity kapadokyaPrefab = Assets.GetEntity("Kapadokya");
+        kapadokyaPrefab.GetChild("defaultobject").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("KapadokyaTex"));
+
+        Entity k = kapadokyaPrefab.Clone();
+        k.Transform.LocalPosition = new Vector3(0.0f, -295.0f, 20.0f);
+        k.Transform.LocalRotation = Quaternion.FromEulerAngles(-0.5f * MathF.PI, 0.0f, 0.25f * MathF.PI);
+        k.Transform.LocalScale = new Vector3(0.25f, 0.25f, 0.25f);
 
         Assets.LoadEntity("PrefabPalm", "Resources/Models/Palm/Palm_4_1.fbx", 0.002f);
         Assets.LoadTexture("TreeLeaf", "Resources/Models/Palm/LeafMap.png", true);
@@ -137,13 +122,13 @@ public class Game : GameWindow
         };
 
         Entity palmM = palmPrefab.Clone();
-        palmM.Transform.LocalPosition = new Vector3(-2.0f, -0.5f, 0.0f);
+        palmM.Transform.LocalPosition = new Vector3(-2.0f, -3.5f, 2.0f);
 
         Entity palmM2 = palmM.Clone();
-        palmM2.Transform.LocalPosition = new Vector3(4.0f, -0.5f, 0.0f);
+        palmM2.Transform.LocalPosition = new Vector3(4.0f, -3.0f, 0.0f);
 
         Entity palmM3 = palmM.Clone();
-        palmM3.Transform.LocalPosition = new Vector3(-1.0f, -0.5f, -2.0f);
+        palmM3.Transform.LocalPosition = new Vector3(-1.0f, -3.5f, -2.0f);
 
         Assets.LoadEntity("PrefabBaloon", "Resources/Models/Baloon/source/viva_baloon.obj", 10.0f);
         Entity baloonPrefab = Assets.GetEntity("PrefabBaloon");
@@ -190,26 +175,13 @@ public class Game : GameWindow
         baloon3.Transform.LocalPosition = new Vector3(10.0f, 15.0f, 15.0f);
         baloon3.GetComponent<SinShakerComponent>().Delta = 0.5f;
 
-        Entity potion = new AssimpLoader(Assets).Load(Path.Combine(Directory.GetCurrentDirectory(), "Resources/Models/potion1.fbx"), "");
-        potion.Transform.LocalPosition = new Vector3(5.0f, 0.0f, -2f);
-        potion.AddComponent(new RotatorComponent() { Speed = 1.0f });
-
-        Entity floor = World.CreateEntity("Floor");
-        floor.AddComponent(new StaticMeshComponent() {
-            Mesh = Assets.GetMesh("MeshQuad"),
-            Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexBeach")) }
-        });
-        floor.Transform.LocalRotation = Quaternion.FromEulerAngles(0.5f * MathF.PI, 0.0f, 0.0f);
-        floor.Transform.LocalPosition += Vector3.UnitY * -0.5f;
-        floor.Transform.LocalScale = new Vector3(15.0f, 10.0f, 1.0f);
-
-
         Entity cat = World.CreateEntity("Cat");
         cat.AddComponent(new StaticMeshComponent() {
             Mesh = Assets.GetMesh("MeshQuad"),
             Materials = new List<Material>() { new LitTexturedMaterial(Assets.GetTexture("TexCat")) }
         });
         cat.AddComponent(new RotatorComponent() { Speed = 1.0f });
+        cat.Transform.LocalPosition = new Vector3(1.0f, -2.5f, 0.0f);
 
         Entity seal = World.CreateEntity("Seal", cat);
         seal.AddComponent(new StaticMeshComponent() {
@@ -225,18 +197,18 @@ public class Game : GameWindow
             Color = new Color4(248, 237, 203, 255)
         };
         lightEntity.AddComponent(l);
-        lightEntity.AddComponent(new StaticMeshComponent()
-        {
-            Mesh = Assets.GetMesh("MeshQuad"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("Blank")) }
-        });
+        //lightEntity.AddComponent(new StaticMeshComponent()
+        //{
+        //    Mesh = Assets.GetMesh("MeshQuad"),
+        //    Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("Blank")) }
+        //});
         lightEntity.Transform.LocalPosition = new Vector3(-5.0F, 10.0f, 100.0f);
         World.Light = l;
 
         Entity cameraEntity = World.CreateEntity("Camera");
         Camera cam = new Camera();
         cameraEntity.AddComponent(cam);
-        cameraEntity.AddComponent(new FreeCameraController());
+        cameraEntity.AddComponent(new FreeCameraController() { MovementSpeed = 2.0f });
         cam.FOV = 60;
         cam.NearPlane = 0.1f;
         cam.FarPlane = 100f;
@@ -244,8 +216,7 @@ public class Game : GameWindow
         cam.Skybox = new CubemapMaterial(Assets.GetCubemap("Skybox"));
         cam.IsOrthograthic = false;
         cam.ClearColor = Color.SkyBlue;
-        cam.Entity.Transform.LocalPosition += Vector3.UnitZ * 3;
-        cam.Entity.Transform.LocalPosition += Vector3.UnitY * 1;
+        cam.Entity.Transform.LocalPosition = new Vector3(-10.0f, 10.0f, 5.0f);
 
         World.CurrentCamera = cam;
 

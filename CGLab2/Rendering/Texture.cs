@@ -1,43 +1,38 @@
-﻿using System.Drawing.Imaging;
-using System.Drawing;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
+using StbImageSharp;
 
 public class Texture : IDisposable
 {
-    public Texture(Bitmap bitmap, bool generateMipmaps)
+    public Texture(string path, bool generateMipmaps)
     {
         GenerateMipmaps = generateMipmaps;
-        Bitmap = bitmap;
 
-        if (Bitmap == null) throw new NullReferenceException(nameof(Bitmap));
-
-        TextureID = GenerateTexture(Bitmap, GenerateMipmaps);
+        TextureID = GenerateTexture(path, GenerateMipmaps);
     }
 
     public bool GenerateMipmaps;
     public int TextureID { get; private set; }
-    public Bitmap Bitmap { get; private set; }
     public bool IsValid { get; private set; }
 
-    private static int GenerateTexture(Bitmap image, bool generateMipmaps)
+    private static int GenerateTexture(string path, bool generateMipmaps)
     {
         int textureID = GL.GenTexture();
 
         GL.BindTexture(TextureTarget.Texture2D, textureID);
 
-        BitmapData data = image.LockBits(new Rectangle(0, 0, image.Width, image.Height),
-            ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        FileStream stream = File.OpenRead(path);
+        StbImage.stbi_set_flip_vertically_on_load(1);
+        ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+        stream.Close();
 
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-            OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0,
+            OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
 
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
-        image.UnlockBits(data);
 
         if (generateMipmaps)
         {

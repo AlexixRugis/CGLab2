@@ -10,14 +10,12 @@ public class CubemapTexture : IDisposable
         if (bitmaps.Length != 6) throw new ArgumentException("There must be 6 textures.");
 
         GenerateMipmaps = generateMipmaps;
-        Bitmaps = bitmaps;
 
-        TextureID = GenerateTexture(Bitmaps, GenerateMipmaps);
+        TextureID = GenerateTexture(bitmaps, GenerateMipmaps);
     }
 
     public bool GenerateMipmaps;
     public int TextureID { get; private set; }
-    public Bitmap[] Bitmaps { get; private set; }
     public bool IsValid { get; private set; }
 
     private static int GenerateTexture(Bitmap[] images, bool generateMipmaps)

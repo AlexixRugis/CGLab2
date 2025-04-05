@@ -32,7 +32,7 @@ void main()
     // specular
     vec3 viewDir = normalize(ViewPos - fragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(halfwayDir, norm), 0.0), 30);
+    float spec = pow(max(dot(halfwayDir, norm), 0.0), 15);
     vec3 specular = LightColor * spec;
 
     c = vec4(AmbientColor + diffuse + specular, 0.0) * c;
