@@ -3,12 +3,14 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 public class FreeCameraController : Component, IUpdatable
 {
-    public float MovementSpeed = 1.0f;
-    public float Sensitivity = 2000f;
+    [EditorField] public float MovementSpeed = 1.0f;
+    [EditorField] public float Sensitivity = 2000f;
+    [EditorField] public float Acceleration = 8.0f;
 
     private bool _firstMove = true;
     private Vector2 _lastPos;
 
+    private Vector3 _currentVelocity = Vector3.Zero;
     private float _pitch = 0.0f;
     private float _yaw = 0.0f;
 
@@ -46,35 +48,47 @@ public class FreeCameraController : Component, IUpdatable
             _firstMove = true;
         }
 
+        Vector3 targetVelocity = Vector3.Zero;
         if (_keyboardState.IsKeyDown(Keys.A))
-        {
-            Entity.Transform.LocalPosition -= right * deltaTime * MovementSpeed;
+        { 
+            targetVelocity -= right;
         }
 
         if (_keyboardState.IsKeyDown(Keys.D))
         {
-            Entity.Transform.LocalPosition += right * deltaTime * MovementSpeed;
+            targetVelocity += right;
         }
 
         if (_keyboardState.IsKeyDown(Keys.W))
         {
-            Entity.Transform.LocalPosition -= forward * deltaTime * MovementSpeed;
+            targetVelocity -= forward;
         }
 
         if (_keyboardState.IsKeyDown(Keys.S))
         {
-            Entity.Transform.LocalPosition += forward * deltaTime * MovementSpeed;
+            targetVelocity += forward;
         }
 
         if (_keyboardState.IsKeyDown(Keys.Space))
         {
-            Entity.Transform.LocalPosition += up * deltaTime * MovementSpeed;
+            targetVelocity += up;
         }
 
         if (_keyboardState.IsKeyDown(Keys.LeftShift))
         {
-            Entity.Transform.LocalPosition -= up * deltaTime * MovementSpeed;
+            targetVelocity -= up;
         }
+
+        if (targetVelocity.LengthSquared > 0.1f)
+        {
+            targetVelocity.Normalize();
+        }
+
+        float speed = MovementSpeed;
+        if (_keyboardState.IsKeyDown(Keys.LeftControl)) speed *= 2.0f;
+
+        _currentVelocity = Vector3Extensions.MoveTowards(_currentVelocity, targetVelocity * speed, Acceleration * deltaTime);
+        Transform.LocalPosition += _currentVelocity * deltaTime;
 
         if (_firstMove)
         {
@@ -84,6 +98,8 @@ public class FreeCameraController : Component, IUpdatable
         else
         {
             float height = Screen.Height;
+
+            if (height == 0) return;
 
             var deltaX = (_mouseState.X - _lastPos.X) / height;
             var deltaY = (_mouseState.Y - _lastPos.Y) / height;

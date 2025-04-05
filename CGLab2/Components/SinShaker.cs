@@ -2,8 +2,8 @@
 
 public class SinShakerComponent : Component, IUpdatable
 {
-    public float Speed = 1.0f;
-    public float Delta = 1.0f;
+    [EditorField] public float Speed = 1.0f;
+    [EditorField] public float Delta = 1.0f;
 
     private Vector3 _initialPosition;
     private float _time;

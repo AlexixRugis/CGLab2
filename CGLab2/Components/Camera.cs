@@ -2,14 +2,24 @@
 
 public class Camera : Component
 {
-    public Color4 ClearColor { get; set; }
+    [field: EditorField] public Color4 ClearColor { get; set; }
     public CubemapMaterial? Skybox { get; set; }
-    public bool IsOrthograthic { get; set; } = true;
-    public float NearPlane { get; set; } = -10f;
-    public float FarPlane { get; set; } = 10f;
-    public float FOV { get; set; } = 60f;
-    public float Width { get; set; }
+    [field: EditorField] public bool IsOrthograthic { get; set; } = true;
+    [field: EditorField] public float NearPlane { get; set; } = -10f;
+    [field: EditorField] public float FarPlane { get; set; } = 10f;
+    [field: EditorField] public float FOV { get; set; } = 60f;
+    [field: EditorField] public float Width { get; set; }
     public float Height => Width / Screen.Aspect;
+
+    public override void OnStart()
+    {
+        base.OnStart();
+
+        if (Entity.World.CurrentCamera == null)
+            Entity.World.CurrentCamera = this;
+        else
+            Console.WriteLine("More than one camera in scene.");
+    }
 
     public override Component Clone()
     {

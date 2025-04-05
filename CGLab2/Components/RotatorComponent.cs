@@ -2,7 +2,7 @@
 
 public class RotatorComponent : Component, IUpdatable
 {
-    public float Speed = 1.0f;
+    [EditorField] public float Speed = 1.0f;
 
     public override Component Clone()
     {

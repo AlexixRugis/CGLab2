@@ -95,7 +95,7 @@ public class ImGuiEditor
 
             foreach (var c in selected.Components)
             {
-                ImGui.Text(c.GetType().Name);
+                DrawComponent(c);
             }
 
             ImGui.End();
@@ -141,5 +141,68 @@ public class ImGuiEditor
             ImGui.TreePop();
         }
 
+    }
+
+    private void DrawComponent(Component c)
+    {
+        Type type = c.GetType();
+
+        if (ImGui.CollapsingHeader(type.Name))
+        {
+            var fields = FieldCollector.GetEditorFields(type);
+
+            foreach (var field in fields)
+            {
+                if (field.FieldType == typeof(float))
+                {
+                    float val = (float)field.GetValue(c);
+                    if (ImGui.InputFloat(field.Name, ref val))
+                    {
+                        field.SetValue(c, val);
+                    }
+                }
+                else if (field.FieldType == typeof(double))
+                {
+                    double val = (double)field.GetValue(c);
+                    if (ImGui.InputDouble(field.Name, ref val))
+                    {
+                        field.SetValue(c, val);
+                    }
+                }
+                else if (field.FieldType == typeof(int))
+                {
+                    int val = (int)field.GetValue(c);
+                    if (ImGui.InputInt(field.Name, ref val))
+                    {
+                        field.SetValue(c, val);
+                    }
+                }
+                else if (field.FieldType == typeof(bool))
+                {
+                    bool val = (bool)field.GetValue(c);
+                    if (ImGui.Checkbox(field.Name, ref val))
+                    {
+                        field.SetValue(c, val);
+                    }
+                }
+                else if (field.FieldType == typeof(OpenTK.Mathematics.Vector3))
+                {
+                    System.Numerics.Vector3 val = (System.Numerics.Vector3)(OpenTK.Mathematics.Vector3)field.GetValue(c);
+                    if (ImGui.InputFloat3(field.Name, ref val))
+                    {
+                        field.SetValue(c, (OpenTK.Mathematics.Vector3)val);
+                    }
+                }
+                else if (field.FieldType == typeof(OpenTK.Mathematics.Color4))
+                {
+                    Color4 col = (OpenTK.Mathematics.Color4)field.GetValue(c);
+                    System.Numerics.Vector4 val = new System.Numerics.Vector4(col.R, col.G, col.B, col.A);
+                    if (ImGui.ColorPicker4(field.Name, ref val))
+                    {
+                        field.SetValue(c, new Color4(val.X, val.Y, val.Z, val.W));
+                    }
+                }
+            }
+        }
     }
 }

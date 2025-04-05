@@ -104,7 +104,8 @@ public class Game : GameWindow
         Assets.LoadEntity("Kapadokya", "Resources/Models/Kapadokya/muze1M.obj");
         Assets.LoadTexture("KapadokyaTex", "Resources/Models/Kapadokya/muze1M.jpg", true);
         Entity kapadokyaPrefab = Assets.GetEntity("Kapadokya");
-        kapadokyaPrefab.GetChild("defaultobject").GetComponent<StaticMeshComponent>().Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("KapadokyaTex"));
+        StaticMeshComponent kapadokyaMesh = kapadokyaPrefab.GetChild("defaultobject").GetComponent<StaticMeshComponent>();
+        kapadokyaMesh.Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("KapadokyaTex"));
 
         Entity k = kapadokyaPrefab.Clone();
         k.Transform.LocalPosition = new Vector3(0.0f, -295.0f, 20.0f);
@@ -190,6 +191,9 @@ public class Game : GameWindow
         });
         seal.AddComponent(new RotatorComponent() { Speed = 3.0f });
         seal.Transform.LocalPosition += Vector3.UnitX * 2.0f;
+        Entity seal2 = seal.Clone();
+        seal2.Transform.LocalPosition = new Vector3(-2.0f, 0.0f, 0.0f);
+        seal2.Transform.SetParent(cat.Transform);
 
         Entity lightEntity = World.CreateEntity("Light");
         Light l = new Light()
@@ -203,7 +207,6 @@ public class Game : GameWindow
         //    Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("Blank")) }
         //});
         lightEntity.Transform.LocalPosition = new Vector3(-5.0F, 10.0f, 100.0f);
-        World.Light = l;
 
         Entity cameraEntity = World.CreateEntity("Camera");
         Camera cam = new Camera();
@@ -217,8 +220,6 @@ public class Game : GameWindow
         cam.IsOrthograthic = false;
         cam.ClearColor = Color.SkyBlue;
         cam.Entity.Transform.LocalPosition = new Vector3(-10.0f, 10.0f, 5.0f);
-
-        World.CurrentCamera = cam;
 
         _renderer.OnLoad();
 
