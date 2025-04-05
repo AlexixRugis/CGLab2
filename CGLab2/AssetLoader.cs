@@ -1,9 +1,13 @@
 ﻿
+using System.Drawing;
+
 public class AssetLoader
 {
     private Dictionary<string, Shader> _shaders = new Dictionary<string, Shader>();
     private Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
+    private Dictionary<string, CubemapTexture> _cubemaps = new Dictionary<string, CubemapTexture>();
     private Dictionary<string, Mesh> _meshes = new Dictionary<string, Mesh>();
+    private Dictionary<string, Entity> _entities = new Dictionary<string, Entity>();
 
     public void LoadShader(string name, string vertexPath, string fragmentPath)
     {
@@ -38,6 +42,24 @@ public class AssetLoader
         throw new InvalidOperationException();
     }
 
+    public void LoadCubemap(string name, string[] paths, bool generateMipmaps)
+    {
+        if (_cubemaps.ContainsKey(name)) throw new ArgumentException($"Cubemap {name} already exists.");
+
+        Bitmap[] bitmaps = new Bitmap[6];
+        for (int i = 0; i < 6; i++) bitmaps[i] = new System.Drawing.Bitmap(paths[i]);
+
+        CubemapTexture tex = new CubemapTexture(bitmaps, generateMipmaps);
+
+        _cubemaps.Add(name, tex);
+    }
+
+    public CubemapTexture GetCubemap(string name)
+    {
+        if (_cubemaps.TryGetValue(name, out CubemapTexture? tex)) return tex;
+        throw new InvalidOperationException();
+    }
+
     public void LoadMesh(string name, Vertex[] vertices, uint[] indices, Mesh.SubMeshInfo[] subMeshes)
     {
         if (_meshes.ContainsKey(name)) throw new ArgumentException($"Mesh {name} already exists.");
@@ -46,20 +68,27 @@ public class AssetLoader
         _meshes.Add(name, mesh);
     }
 
-    public void LoadMesh(string name, string path)
-    {
-        if (_meshes.ContainsKey(name)) throw new ArgumentException($"Mesh {name} already exists.");
-
-        string fullPath = Path.Combine(Directory.GetCurrentDirectory(), path);
-        //AssimpLoader loader = new AssimpLoader();
-
-        //Mesh mesh = loader.Load(fullPath, "");
-        //_meshes.Add(name, mesh);
-    }
 
     public Mesh GetMesh(string name)
     {
         if (_meshes.TryGetValue(name, out Mesh? mesh)) return mesh;
+        throw new InvalidOperationException();
+    }
+
+    public void LoadEntity(string name, string path, float scale = 0.01f)
+    {
+        if (_entities.ContainsKey(name)) throw new ArgumentException($"Entity {name} already exists.");
+
+        string fullPath = Path.Combine(Directory.GetCurrentDirectory(), path);
+        AssimpLoader loader = new AssimpLoader(this);
+
+        Entity e = loader.Load(fullPath, "", scale);
+        _entities.Add(name, e);
+    }
+
+    public Entity GetEntity(string name)
+    {
+        if (_entities.TryGetValue(name, out Entity? entity)) return entity;
         throw new InvalidOperationException();
     }
 
@@ -75,6 +104,12 @@ public class AssetLoader
         {
             kv.Value.Dispose();
         }
-        _shaders.Clear();
+        _textures.Clear();
+
+        foreach (var kv in _cubemaps)
+        {
+            kv.Value.Dispose();
+        }
+        _cubemaps.Clear();
     }
 }

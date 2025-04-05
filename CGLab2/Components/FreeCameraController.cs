@@ -15,6 +15,15 @@ public class FreeCameraController : Component, IUpdatable
     private KeyboardState _keyboardState;
     private MouseState _mouseState;
 
+    public override Component Clone()
+    {
+        return new FreeCameraController()
+        {
+            MovementSpeed = MovementSpeed,
+            Sensitivity = Sensitivity,
+        };
+    }
+
     public override void OnStart()
     {
         _keyboardState = Game.Instance.KeyboardState;

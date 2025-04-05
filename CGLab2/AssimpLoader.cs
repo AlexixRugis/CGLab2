@@ -31,9 +31,7 @@ public class AssimpLoader
 
     private Entity ProcessNode(Assimp.Node node, Assimp.Scene scene)
     {
-        World world = Game.Instance.World;
-
-        Entity e = world.CreateEntity(node.Name);
+        Entity e = new Entity(null, node.Name);
         if (node.MeshCount > 0) {
             e.AddComponent(ProcessMeshes(scene, node.MeshIndices));
         }
@@ -74,10 +72,6 @@ public class AssimpLoader
             int material = aiMesh.MaterialIndex;
 
             Color4D col = scene.Materials[material].ColorDiffuse;
-            if (scene.Materials[material].HasTextureDiffuse)
-            {
-                Console.WriteLine(scene.Materials[material].TextureDiffuse.FilePath);
-            }
             LitTexturedMaterial mat = new LitTexturedMaterial(Game.Instance.Assets.GetTexture("Blank"))
             {
                 Color = System.Drawing.Color.FromArgb((int)(col.A * 255.0f), (int)(col.R * 255.0f), (int)(col.G * 255.0f), (int)(col.B * 255.0f))
@@ -103,12 +97,13 @@ public class AssimpLoader
                 vertices.Add(v);
             }
 
+            uint startIndex = (uint)indices.Count;
             List<Face> faces = aiMesh.Faces;
             for (int i = 0; i < faces.Count; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    indices.Add((uint)faces[i].Indices[j]);
+                    indices.Add((uint)faces[i].Indices[j] + startIndex);
                 }
             }
         }

@@ -56,4 +56,63 @@
 
         return null;
     }
+
+    public Entity Clone()
+    {
+        Entity e = Game.Instance.World.CreateEntity(Name);
+        e.Transform.LocalPosition = Transform.LocalPosition;
+        e.Transform.LocalRotation = Transform.LocalRotation;
+        e.Transform.LocalScale = Transform.LocalScale;
+
+        foreach (var ch in Transform.Children)
+        {
+            Entity chEntity = ch.Entity.Clone();
+            chEntity.Transform.SetParent(e.Transform);
+        }
+
+        foreach (var c  in Components)
+        {
+            e.AddComponent(c.Clone());
+        }
+
+        return e;
+    }
+
+    public Entity? GetChild(string name)
+    {
+        if (Name == name) return this;
+
+        foreach (var ch in Transform.Children)
+        {
+            Entity che = ch.Entity;
+            if (che.Name == name)
+            {
+                return che;
+            }
+
+            Entity? res = che.GetChild(name);
+            if (res != null) return res;
+        }
+
+        return null;
+    }
+
+    public Entity? GetChild(ulong id)
+    {
+        if (Id == id) return this;
+
+        foreach (var ch in Transform.Children)
+        {
+            Entity che = ch.Entity;
+            if (che.Id == id)
+            {
+                return che;
+            }
+
+            Entity? res = che.GetChild(id);
+            if (res != null) return res;
+        }
+
+        return null;
+    }
 }

@@ -8,6 +8,15 @@ public class SinShakerComponent : Component, IUpdatable
     private Vector3 _initialPosition;
     private float _time;
 
+    public override Component Clone()
+    {
+        return new SinShakerComponent()
+        {
+            Speed = Speed,
+            Delta = Delta
+        };
+    }
+
     public override void OnStart()
     {
         base.OnStart();

@@ -7,8 +7,9 @@ public class World
     private List<IRenderable> _renderers = new List<IRenderable>();
     private List<IUpdatable> _updates = new List<IUpdatable>();
 
-    public Color4 AmbientColor { get; set; } = Color4.Gray;
+    public Color4 AmbientColor { get; set; } = new Color4(147, 177, 215, 255);
     public Camera CurrentCamera { get; set; }
+    public Light Light { get; set; }
     public bool Started { get; private set; } = false;
 
     public IReadOnlyList<Entity> RootEntites => _rootEntities;

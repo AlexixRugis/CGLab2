@@ -16,26 +16,26 @@ in vec2 texCoord;
 
 void main()
 {
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(LightPos - fragPos);
-
-
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * LightColor;
-
-    float specularStrength = 0.5;
-    vec3 viewDir = normalize(ViewPos - fragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * LightColor;
-
-    vec4 c = vec4(diffuse + specular + AmbientColor, 1.0) * Color * texture(texture0, texCoord);
+    vec4 c = Color * texture(texture0, texCoord);
 
     if (c.a < 1.0f)
     {
         discard;
     }
 
+    // diffuse 
+    vec3 norm = normalize(normal);
+    vec3 lightDir = normalize(LightPos - fragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = LightColor * diff;
+
+    // specular
+    vec3 viewDir = normalize(ViewPos - fragPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(halfwayDir, norm), 0.0), 30);
+    vec3 specular = LightColor * spec;
+
+    c = vec4(AmbientColor + diffuse + specular, 0.0) * c;
+    c.a = 1.0;
     FragColor = c;
 }
