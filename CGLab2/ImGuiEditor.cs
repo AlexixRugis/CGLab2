@@ -42,14 +42,12 @@ public class ImGuiEditor
         
         ImGui.Begin("Controls");
         ImGui.Text($"FPS: {(int)(1.0f / deltaTime)}");
+        ImGui.Text($"Draw calls: {Game.Instance.Renderer.DrawCalls}");
         ImGui.Checkbox("VSync", ref _vsync);
         if (_vsync && _game.VSync != VSyncMode.On) _game.VSync = VSyncMode.On;
         else if (!_vsync && _game.VSync != VSyncMode.Off) _game.VSync = VSyncMode.Off;
 
-        if (ImGui.Button("fff"))
-        {
-            Console.WriteLine("fff");
-        }
+        ImGui.Separator();
 
         Color4 ambC = _world.AmbientColor;
         System.Numerics.Vector3 col = new System.Numerics.Vector3(ambC.R, ambC.G, ambC.B);

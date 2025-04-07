@@ -3,6 +3,8 @@ using OpenTK.Mathematics;
 
 public class Renderer
 {
+    public uint DrawCalls { get; private set; } = 0;
+
     private float[] _skyboxVertices = {
         // positions          
         -1.0f,  1.0f, -1.0f,
@@ -93,6 +95,7 @@ public class Renderer
         if (camera == null) return;
 
         _drawRequests.Clear();
+        DrawCalls = 0;
         
         foreach (var r in world.Renderers)
         {
@@ -122,11 +125,7 @@ public class Renderer
                 s.SetMatrix("_Model", ref dr.ModelMatrix);
 
                 GL.DrawElements(PrimitiveType.Triangles, subMesh.Size, DrawElementsType.UnsignedInt, subMesh.Index);
-
-                if (GL.GetError() != ErrorCode.NoError)
-                {
-                    Console.WriteLine("e");
-                }
+                DrawCalls++;
             }
         }
 

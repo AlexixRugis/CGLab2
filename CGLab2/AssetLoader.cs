@@ -68,7 +68,6 @@ public class AssetLoader
         _meshes.Add(name, mesh);
     }
 
-
     public Mesh GetMesh(string name)
     {
         if (_meshes.TryGetValue(name, out Mesh? mesh)) return mesh;
@@ -84,6 +83,15 @@ public class AssetLoader
 
         Entity e = loader.Load(fullPath, "", scale);
         _entities.Add(name, e);
+    }
+
+    public void LoadEntity(string name, Entity entity)
+    {
+        if (_entities.ContainsKey(name)) throw new ArgumentException($"Entity {name} already exists.");
+
+        if (entity.World != null) throw new ArgumentException("Can only add entities that are not attached to the world.");
+
+        _entities.Add(name, entity);
     }
 
     public Entity GetEntity(string name)
