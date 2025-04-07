@@ -86,6 +86,12 @@
     <None Update="Resources\Models\Kapadokya\muze1M.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\Models\Oiia\Muchkin2_BaseColor.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Models\Oiia\OiiaioooooiaiFin.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Models\Palm\LeafMap.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

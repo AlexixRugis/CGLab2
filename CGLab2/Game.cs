@@ -95,6 +95,15 @@ public class Game : GameWindow
         k.Transform.LocalRotation = Quaternion.FromEulerAngles(-0.5f * MathF.PI, 0.0f, 0.25f * MathF.PI);
         k.Transform.LocalScale = new Vector3(0.25f, 0.25f, 0.25f);
 
+        Assets.LoadTexture("TexOiia", "Resources/Models/Oiia/Muchkin2_BaseColor.png", true);
+        Assets.LoadEntity("PrefabOiia", "Resources/Models/Oiia/OiiaioooooiaiFin.fbx");
+
+        Entity oiia = Assets.GetEntity("PrefabOiia").Clone();
+        oiia.GetChild("Muchkin1.002").GetComponent<StaticMeshComponent>()
+            .Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexOiia"));
+        oiia.Transform.LocalPosition = new Vector3(12.0f, -1.2f, 5.0f);
+        oiia.Transform.LocalRotation = Quaternion.FromEulerAngles(0.0f, -0.1f, 0.0f);
+
         Assets.LoadEntity("PrefabPalm", "Resources/Models/Palm/Palm_4_1.fbx", 0.002f);
         Assets.LoadTexture("TreeLeaf", "Resources/Models/Palm/LeafMap.png", true);
         Assets.LoadTexture("TreeTrunk", "Resources/Models/Palm/Trunk'_Atlas.png", true);
