@@ -7,7 +7,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 public class ImGuiEditor
 {
     private readonly Game _game;
-    private World _world;
 
     private ImGuiController _controller;
     private bool _showImGui = false;
@@ -18,7 +17,6 @@ public class ImGuiEditor
     public ImGuiEditor(Game game)
     {
         _game = game;
-        _world = game.World;
         _controller = new ImGuiController(game.ClientSize.X, game.ClientSize.Y);
     }
 
@@ -39,6 +37,8 @@ public class ImGuiEditor
     public void Render(float deltaTime)
     {
         if (!_showImGui) return;
+
+        World world = _game.World;
         
         ImGui.Begin("Controls");
         ImGui.Text($"FPS: {(int)(1.0f / deltaTime)}");
@@ -49,17 +49,17 @@ public class ImGuiEditor
 
         ImGui.Separator();
 
-        Color4 ambC = _world.AmbientColor;
+        Color4 ambC = world.AmbientColor;
         System.Numerics.Vector3 col = new System.Numerics.Vector3(ambC.R, ambC.G, ambC.B);
         if (ImGui.ColorPicker3("Ambient", ref col))
         {
-            _world.AmbientColor = new Color4(col.X, col.Y, col.Z, 255);
+            world.AmbientColor = new Color4(col.X, col.Y, col.Z, 255);
         }
 
         ImGui.End();
 
         ImGui.Begin("Objects");
-        foreach (var e in _world.RootEntites)
+        foreach (var e in world.RootEntites)
         {
             DrawEntityTree(e);
         }

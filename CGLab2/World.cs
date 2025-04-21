@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-public class World
+public abstract class World
 {
     private List<Entity> _entities = new List<Entity>();
     private List<Entity> _rootEntities = new List<Entity>();
@@ -8,6 +8,9 @@ public class World
     private List<IUpdatable> _updates = new List<IUpdatable>();
 
     public Color4 AmbientColor { get; set; } = new Color4(209, 207, 220, 255);
+
+    public Game Game { get; set; }
+    public AssetLoader Assets => Game.Assets;
     public Camera CurrentCamera { get; set; }
     public Light Light { get; set; }
     public bool Started { get; private set; } = false;
@@ -15,6 +18,10 @@ public class World
     public IReadOnlyList<Entity> RootEntites => _rootEntities;
     public IReadOnlyList<IRenderable> Renderers => _renderers;
     public IReadOnlyList<IUpdatable> Updatables => _updates;
+
+    public abstract void LoadResources();
+    public abstract void UnloadResources();
+    public abstract void LoadEntities();
 
     public Entity CreateEntity(string name, Entity? parent = null)
     {

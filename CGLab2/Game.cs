@@ -3,6 +3,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Mathematics;
 using System.Drawing;
+using System.Security.Principal;
 
 public class Game : GameWindow
 {
@@ -31,7 +32,9 @@ public class Game : GameWindow
     private ImGuiEditor _editor;
 
     public AssetLoader Assets { get; } = new AssetLoader();
-    public World World { get; } = new World();
+
+    private World? _nextWorld = null;
+    public World? World { get; private set; } = null;
     public Renderer Renderer { get; } = new Renderer();
 
     private Game() : base(GameWindowSettings.Default,
@@ -50,6 +53,13 @@ public class Game : GameWindow
         })
     {
         VSync = _vSyncMode;
+    }
+
+    public void LoadWorld(World world)
+    {
+        if (world == null) throw new ArgumentNullException(nameof(world));
+
+        _nextWorld = world;
     }
 
     protected override void OnLoad()
@@ -77,151 +87,17 @@ public class Game : GameWindow
         "Resources/Textures/Skybox/Epic_GloriousPink_Cam_1_Back-Z.png",}, true);
 
         Assets.LoadTexture("Blank", "Resources/Textures/blank.png", false);
-        Assets.LoadTexture("TexCat", "Resources/Textures/cat.png", true);
-        Assets.LoadTexture("TexSeal", "Resources/Textures/seal.jpg", true);
 
         Primitives.Load(Assets);
 
-        AssimpLoader loader = new AssimpLoader(Assets);
-
-        Assets.LoadEntity("Kapadokya", "Resources/Models/Kapadokya/muze1M.obj");
-        Assets.LoadTexture("KapadokyaTex", "Resources/Models/Kapadokya/muze1M.jpg", true);
-        Entity kapadokyaPrefab = Assets.GetEntity("Kapadokya");
-        StaticMeshComponent kapadokyaMesh = kapadokyaPrefab.GetChild("defaultobject").GetComponent<StaticMeshComponent>();
-        kapadokyaMesh.Materials[0] = new UnlitTexturedMaterial(Assets.GetTexture("KapadokyaTex"));
-
-        Entity k = kapadokyaPrefab.Clone();
-        k.Transform.LocalPosition = new Vector3(0.0f, -295.0f, 20.0f);
-        k.Transform.LocalRotation = Quaternion.FromEulerAngles(-0.5f * MathF.PI, 0.0f, 0.25f * MathF.PI);
-        k.Transform.LocalScale = new Vector3(0.25f, 0.25f, 0.25f);
-
-        Assets.LoadTexture("TexOiia", "Resources/Models/Oiia/Muchkin2_BaseColor.png", true);
-        Assets.LoadEntity("PrefabOiia", "Resources/Models/Oiia/OiiaioooooiaiFin.fbx");
-
-        Entity oiia = Assets.GetEntity("PrefabOiia").Clone();
-        oiia.GetChild("Muchkin1.002").GetComponent<StaticMeshComponent>()
-            .Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexOiia"));
-        oiia.Transform.LocalPosition = new Vector3(12.0f, -1.2f, 5.0f);
-        oiia.Transform.LocalRotation = Quaternion.FromEulerAngles(0.0f, -0.1f, 0.0f);
-
-        Assets.LoadEntity("PrefabPalm", "Resources/Models/Palm/Palm_4_1.fbx", 0.002f);
-        Assets.LoadTexture("TreeLeaf", "Resources/Models/Palm/LeafMap.png", true);
-        Assets.LoadTexture("TreeTrunk", "Resources/Models/Palm/Trunk'_Atlas.png", true);
-        Entity palmPrefab = Assets.GetEntity("PrefabPalm");
-        palmPrefab.Transform.Children[0].Entity.GetComponent<StaticMeshComponent>().Materials = new List<Material>()
-        {
-            new LitTexturedMaterial(Assets.GetTexture("TreeTrunk")),
-            new LitTexturedMaterial(Assets.GetTexture("TreeLeaf")),
-        };
-
-        Entity palmM = palmPrefab.Clone();
-        palmM.Transform.LocalPosition = new Vector3(-2.0f, -3.5f, 2.0f);
-
-        Entity palmM2 = palmM.Clone();
-        palmM2.Transform.LocalPosition = new Vector3(4.0f, -3.0f, 0.0f);
-
-        Entity palmM3 = palmM.Clone();
-        palmM3.Transform.LocalPosition = new Vector3(-1.0f, -3.5f, -2.0f);
-
-        Assets.LoadEntity("PrefabBaloon", "Resources/Models/Baloon/source/viva_baloon.obj", 10.0f);
-        Entity baloonPrefab = Assets.GetEntity("PrefabBaloon");
-
-        baloonPrefab.AddComponent(new SinShakerComponent()
-        {
-            Speed = 0.5f
-        });
-
-        Assets.LoadTexture("TexBaloon1", "Resources/Models/Baloon/textures/Viva_Balloon_Colors_Mat1.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_1").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon1"));
-        Assets.LoadTexture("TexBaloon2", "Resources/Models/Baloon/textures/Mouth_Mat2.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_2").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon2"));
-        Assets.LoadTexture("TexBaloon3", "Resources/Models/Baloon/textures/Wood_Bottom_Mat3.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_3").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon3"));
-        Assets.LoadTexture("TexBaloon4", "Resources/Models/Baloon/textures/Wicker_Mat4.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_4").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon4"));
-        Assets.LoadTexture("TexBaloon7", "Resources/Models/Baloon/textures/Railing_Leather_Mat_7.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_7").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon7"));
-        Assets.LoadTexture("TexBaloon13", "Resources/Models/Baloon/textures/light_brown_leatherMat13.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_13").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon13"));
-        Assets.LoadTexture("TexBaloonSilver", "Resources/Models/Baloon/textures/PropaneSilver4_tanksMat_8.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_silver").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonSilver"));
-        baloonPrefab.GetChild("viva_baloon_tanccover").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonSilver"));
-        Assets.LoadTexture("TexBaloonBALENV", "Resources/Models/Baloon/textures/balenv_blue.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_balenv").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonBALENV"));
-        Assets.LoadTexture("TexBaloonRED", "Resources/Models/Baloon/textures/RED.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_RED").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonRED"));
-        baloonPrefab.GetChild("viva_baloon_RedBurnerSteel").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonRED"));
-        Assets.LoadTexture("TexBaloon17", "Resources/Models/Baloon/textures/Scoop_FabricMat_17.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_17").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloon17"));
-        Assets.LoadTexture("TexBaloonCables", "Resources/Models/Baloon/textures/SteelCables36_40_41_42.jpg", true);
-        baloonPrefab.GetChild("viva_baloon_material_36").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
-        baloonPrefab.GetChild("viva_baloon_material_40").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
-        baloonPrefab.GetChild("viva_baloon_material_41").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
-        baloonPrefab.GetChild("viva_baloon_material_42").GetComponent<StaticMeshComponent>().Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexBaloonCables"));
-
-        Entity baloon = baloonPrefab.Clone();
-        Entity baloon2 = baloonPrefab.Clone();
-        baloon2.GetComponent<SinShakerComponent>().Delta = 2.0f;
-        baloon2.GetComponent<SinShakerComponent>().Speed = 0.25f;
-        baloon2.Transform.LocalPosition = new Vector3(10.0f, 10.0f, -15.0f);
-        Entity baloon3 = baloonPrefab.Clone();
-        baloon3.Transform.LocalPosition = new Vector3(10.0f, 15.0f, 15.0f);
-        baloon3.GetComponent<SinShakerComponent>().Delta = 0.5f;
-
-        Entity testSphere = Assets.GetEntity("PrefabSphere").Clone();
-        testSphere.Transform.LocalPosition = new Vector3(0.0f, 3.0f, 0.0f);
-
-        Entity cat = Assets.GetEntity("PrefabCube").Clone();
-        StaticMeshComponent catRenderer = cat.GetComponent<StaticMeshComponent>();
-        catRenderer.Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexCat"));
-        cat.AddComponent(new RotatorComponent() { Speed = 1.0f });
-        cat.Transform.LocalPosition = new Vector3(1.0f, -2.5f, 0.0f);
-
-        Entity seal = Assets.GetEntity("PrefabQuad").Clone();
-        StaticMeshComponent sealRenderer = seal.GetComponent<StaticMeshComponent>();
-        sealRenderer.Materials[0] = new LitTexturedMaterial(Assets.GetTexture("TexSeal"));
-        seal.AddComponent(new RotatorComponent() { Speed = 3.0f });
-        seal.Transform.LocalPosition += Vector3.UnitX * 2.0f;
-        seal.Transform.SetParent(cat.Transform);
-        Entity seal2 = seal.Clone();
-        seal2.Transform.LocalPosition = new Vector3(-2.0f, 0.0f, 0.0f);
-        seal2.Transform.SetParent(cat.Transform);
-
-        Entity lightEntity = World.CreateEntity("Light");
-        Light l = new Light()
-        {
-            Color = new Color4(248, 237, 203, 255)
-        };
-        lightEntity.AddComponent(l);
-        lightEntity.AddComponent(new StaticMeshComponent()
-        {
-            Mesh = Assets.GetMesh("MeshQuad"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("Blank")) }
-        });
-        lightEntity.Transform.LocalPosition = new Vector3(-5.0F, 10.0f, 100.0f);
-
-        Entity cameraEntity = World.CreateEntity("Camera");
-        Camera cam = new Camera();
-        cameraEntity.AddComponent(cam);
-        cameraEntity.AddComponent(new FreeCameraController() { MovementSpeed = 2.0f });
-        cam.FOV = 60;
-        cam.NearPlane = 0.1f;
-        cam.FarPlane = 100f;
-        cam.ClearColor = Color.White;
-        cam.Skybox = new CubemapMaterial(Assets.GetCubemap("Skybox"));
-        cam.IsOrthograthic = false;
-        cam.ClearColor = Color.SkyBlue;
-        cam.Entity.Transform.LocalPosition = new Vector3(-10.0f, 10.0f, 5.0f);
-
         Renderer.OnLoad();
-
-        World.OnStart();
 
         _editor = new ImGuiEditor(this);
     }
 
-    public static void Start()
+    public static void Start(World startWorld)
     {
+        Instance.LoadWorld(startWorld);
         Instance.Run();
     }
 
@@ -229,7 +105,8 @@ public class Game : GameWindow
     {
         base.OnUnload();
 
-        World.DestroyAll();
+        UnloadCurrentWorld();
+
         Renderer.OnUnload();
         Assets.UnloadAll();
     }
@@ -246,6 +123,12 @@ public class Game : GameWindow
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
+
+        if (_nextWorld != null)
+        {
+            UnloadCurrentWorld();
+            LoadNextWorld();
+        }
 
         World.ProcessDestroy();
 
@@ -281,5 +164,26 @@ public class Game : GameWindow
         base.OnMouseWheel(e);
 
         _editor.MouseScroll(e.Offset);
+    }
+
+    private void UnloadCurrentWorld()
+    {
+        if (World == null) return;
+
+        World.DestroyAll();
+        World.ProcessDestroy();
+        World.UnloadResources();
+        World = null;
+    }
+
+    private void LoadNextWorld()
+    {
+        World = _nextWorld;
+        _nextWorld = null;
+
+        World.Game = this;
+        World.LoadResources();
+        World.LoadEntities();
+        World.OnStart();
     }
 }
