@@ -2,8 +2,8 @@
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Mathematics;
-using System.Drawing;
-using System.Security.Principal;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 public class Game : GameWindow
 {
@@ -42,7 +42,7 @@ public class Game : GameWindow
         {
             ClientSize = new Vector2i(_width, _height),
             Title = _title,
-            Flags = ContextFlags.Default,
+            Flags = ContextFlags.Debug,
             RedBits = 8,
             GreenBits = 8,
             BlueBits = 8,
@@ -66,6 +66,10 @@ public class Game : GameWindow
     {
         base.OnLoad();
 
+        GL.Enable(EnableCap.DebugOutput);
+        GL.Enable(EnableCap.DebugOutputSynchronous);
+        GL.DebugMessageCallback(DebugCallback, IntPtr.Zero);
+
         Assets.LoadShader("ShaderTexUnlit",
             "Resources/Shaders/vert.glsl",
             "Resources/Shaders/frag.glsl");
@@ -77,6 +81,10 @@ public class Game : GameWindow
         Assets.LoadShader("ShaderSkybox",
             "Resources/Shaders/vertSkybox.glsl",
             "Resources/Shaders/fragSkybox.glsl");
+
+        Assets.LoadShader("ShaderFullscreen",
+            "Resources/Shaders/vertFullscreen.glsl",
+            "Resources/Shaders/fragFullscreen.glsl");
 
         Assets.LoadCubemap("Skybox", new string[] {
         "Resources/Textures/Skybox/Epic_GloriousPink_Cam_2_Left+X.png",
@@ -164,6 +172,13 @@ public class Game : GameWindow
         base.OnMouseWheel(e);
 
         _editor.MouseScroll(e.Offset);
+    }
+
+    private static void DebugCallback(DebugSource source, DebugType type, int id,
+                                  DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+    {
+        string msg = Marshal.PtrToStringAnsi(message, length);
+        Console.WriteLine($"[OpenGL DEBUG] {type} {severity} | {msg}");
     }
 
     private void UnloadCurrentWorld()

@@ -4,6 +4,21 @@ using OpenTK.Mathematics;
 public class Renderer
 {
     public uint DrawCalls { get; private set; } = 0;
+    public event Action? PostRenderCallback;
+
+    private static readonly Vertex[] _fullscreenVertices =
+    {
+        new Vertex() { Position = new Vector3(1.0f, 1.0f, 0.0f), UV = new Vector2(1.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
+        new Vertex() { Position = new Vector3(1.0f, -1.0f, 0.0f), UV = new Vector2(1.0f,0.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
+        new Vertex() { Position = new Vector3(-1.0f, -1.0f, 0.0f), UV = new Vector2(0.0f,0.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
+        new Vertex() { Position = new Vector3(-1.0f, 1.0f, 0.0f), UV = new Vector2(0.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) }
+    };
+
+    private static readonly uint[] _fullscreenIndices =
+    {
+        0, 1, 3,
+        1, 2, 3
+    };
 
     private float[] _skyboxVertices = {
         // positions          
@@ -53,6 +68,8 @@ public class Renderer
     private int _skyboxVAO;
     private int _skyboxVBO;
 
+    private Mesh _fullscreenMesh;
+
     struct DrawRequest
     {
         public Material Material;
@@ -64,7 +81,6 @@ public class Renderer
 
     public void OnLoad()
     {
-        GL.Enable(EnableCap.Texture2D);
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Lequal);
         GL.Enable(EnableCap.Blend);
@@ -81,18 +97,27 @@ public class Renderer
         GL.EnableVertexAttribArray(0);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
+
+        _fullscreenMesh = new Mesh(_fullscreenVertices, _fullscreenIndices, new Mesh.SubMeshInfo[]
+        {
+            new Mesh.SubMeshInfo() { Index = 0, Size = 6 }
+        });
     }
 
     public void OnUnload()
     {
         GL.DeleteVertexArray(_skyboxVAO);
         GL.DeleteBuffer(_skyboxVBO);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
     public void Render(World world)
     {
         Camera camera = world.CurrentCamera;
         if (camera == null) return;
+
+        if (camera.Target != null)
+            camera.Target.Bind();
 
         _drawRequests.Clear();
         DrawCalls = 0;
@@ -142,6 +167,11 @@ public class Renderer
             GL.BindVertexArray(_skyboxVAO);
             GL.DrawArrays(BeginMode.Triangles, 0, 36);
         }
+
+        if (camera.Target != null)
+            camera.Target.Unbind();
+
+        PostRenderCallback?.Invoke();
     }
 
     public void DrawMesh(Mesh mesh, Material material, int subMeshIndex, Matrix4 transform)
@@ -154,5 +184,30 @@ public class Renderer
         _drawRequests[mesh].Add(new DrawRequest { 
             ModelMatrix = transform, 
             Material = material, SubMeshIndex = subMeshIndex });
+    }
+
+    public void Blit(Texture? tex, Framebuffer framebuffer, Material material)
+    {
+        GL.Disable(EnableCap.DepthTest);
+        framebuffer.Bind();
+        _fullscreenMesh.Bind();
+        material.Use();
+        if (tex != null) 
+            tex.Bind(TextureUnit.Texture0);
+        GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+        framebuffer.Unbind();
+        GL.Enable(EnableCap.DepthTest);
+    }
+
+    public void Blit(Texture? tex, Material material)
+    {
+        GL.Disable(EnableCap.DepthTest);
+
+        _fullscreenMesh.Bind();
+        material.Use();
+        if (tex != null)
+            tex.Bind(TextureUnit.Texture0);
+        GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+        GL.Enable(EnableCap.DepthTest);
     }
 }

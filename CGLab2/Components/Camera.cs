@@ -2,13 +2,15 @@
 
 public class Camera : Component
 {
-    [field: EditorField] public Color4 ClearColor { get; set; }
-    public CubemapMaterial? Skybox { get; set; }
+    [field: EditorField] public Color4 ClearColor { get; set; } = Color4.Black;
+    public CubemapMaterial? Skybox { get; set; } = null;
+    public Framebuffer? Target { get; set; } = null;
     [field: EditorField] public bool IsOrthograthic { get; set; } = true;
     [field: EditorField] public float NearPlane { get; set; } = -10f;
     [field: EditorField] public float FarPlane { get; set; } = 10f;
     [field: EditorField] public float FOV { get; set; } = 60f;
-    [field: EditorField] public float Width { get; set; }
+    [field: EditorField] public float Width { get; set; } = 5.0f;
+    
     public float Height => Width / Screen.Aspect;
 
     public override void OnStart()
@@ -27,6 +29,7 @@ public class Camera : Component
         {
             ClearColor = ClearColor,
             Skybox = Skybox,
+            Target = Target,
             IsOrthograthic = IsOrthograthic,
             NearPlane = FarPlane,
             FarPlane = FarPlane,

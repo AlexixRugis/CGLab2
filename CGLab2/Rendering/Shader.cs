@@ -57,6 +57,11 @@ public class Shader : IDisposable
         GL.Uniform1(GetUniformLocation(name), x);
     }
 
+    public void SetUInt(string name, uint x)
+    {
+        GL.Uniform1(GetUniformLocation(name), x);
+    }
+
     public void SetFloat2(string name, float x, float y)
     {
         GL.Uniform2(GetUniformLocation(name), x, y);
