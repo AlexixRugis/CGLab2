@@ -1,9 +1,9 @@
-﻿
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 using System.Drawing;
 
 public class RayTracingWorld : World
 {
+
     private static readonly Vertex[] _fullscreenVertices =
     {
         new Vertex() { Position = new Vector3(1.0f, 1.0f, 0.0f), UV = new Vector2(1.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
@@ -18,6 +18,7 @@ public class RayTracingWorld : World
         1, 2, 3
     };
 
+    private SSBO<RTMaterial.Sphere> _spheres;
     private Mesh _fullscreenMesh;
 
     public override void LoadResources()
@@ -35,6 +36,7 @@ public class RayTracingWorld : World
     public override void UnloadResources()
     {
         _fullscreenMesh.Dispose();
+        _spheres.Dispose();
     }
 
     public override void LoadEntities()
@@ -71,13 +73,45 @@ public class RayTracingWorld : World
         cam.ClearColor = Color.SkyBlue;
         cam.Entity.Transform.LocalPosition = new Vector3(0.0f, 0.0f, 5.0f);
 
+        RTMaterial.Sphere[] spheres = new RTMaterial.Sphere[3];
+        spheres[0] = new RTMaterial.Sphere()
+        {
+            Position = new Vector3(1.0f, 1.0f, 0.0f),
+            Radius = 1.0f,
+            Material = new RTMaterial.Material()
+            {
+                Color = new Vector4(1.0f, 1.0f, 1.0f, 1.0f)
+            }
+        };
+
+        spheres[1] = new RTMaterial.Sphere()
+        {
+            Position = new Vector3(3.0f, 0.0f, 0.0f),
+            Radius = 1.0f,
+            Material = new RTMaterial.Material()
+            {
+                Color = new Vector4(1.0f, 0.0f, 1.0f, 1.0f)
+            }
+        };
+
+        spheres[2] = new RTMaterial.Sphere()
+        {
+            Position = new Vector3(-3.0f, 0.0f, -2.0f),
+            Radius = 1.5f,
+            Material = new RTMaterial.Material()
+            {
+                Color = new Vector4(1.0f, 0.0f, 0.0f, 1.0f)
+            }
+        };
+
+        _spheres = new SSBO<RTMaterial.Sphere>(spheres);
 
         // fullscreen
         Entity screen = CreateEntity("Screen");
         screen.AddComponent(new StaticMeshComponent()
         {
             Mesh = _fullscreenMesh,
-            Materials = new List<Material>() { new RTMaterial(cam) }
+            Materials = new List<Material>() { new RTMaterial(cam,_spheres) }
         });
     }
 }
