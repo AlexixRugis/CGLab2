@@ -5,9 +5,13 @@ public class SSBO<T> : IDisposable where T : struct
 {
     private int _pointer;
 
+    public int Count { get; private set; }
+
     public SSBO(T[] data, bool dynamic = false)
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
+
+        Count = data.Length;
 
         _pointer = GL.GenBuffer();
 

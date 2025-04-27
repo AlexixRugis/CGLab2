@@ -16,7 +16,7 @@ public class RTRendererComponent : Component
         _frame1 = new Framebuffer(clientSize.X, clientSize.Y);
         _frame2 = new Framebuffer(clientSize.X, clientSize.Y);
 
-        RTMaterial.Sphere[] spheres = new RTMaterial.Sphere[4];
+        RTMaterial.Sphere[] spheres = new RTMaterial.Sphere[10];
         spheres[0] = new RTMaterial.Sphere()
         {
             Position = new Vector3(1.0f, 1.0f, 0.0f),
@@ -24,7 +24,8 @@ public class RTRendererComponent : Component
             Material = new RTMaterial.Material()
             {
                 Color = new Vector3(1.0f, 1.0f, 1.0f),
-                EmissionStrength = 0.0f
+                EmissionStrength = 0.0f,
+                Smoothness = 0.8f
             }
         };
 
@@ -35,7 +36,8 @@ public class RTRendererComponent : Component
             Material = new RTMaterial.Material()
             {
                 Color = new Vector3(1.0f, 0.0f, 1.0f),
-                EmissionStrength = 0.0f
+                EmissionStrength = 0.0f,
+                Smoothness = 0.5f
             }
         };
 
@@ -47,7 +49,8 @@ public class RTRendererComponent : Component
             {
                 Color = new Vector3(0.0f, 0.0f, 0.0f),
                 EmissionColor = new Vector3(1.0f, 1.0f, 1.0f),
-                EmissionStrength = 20.0f
+                EmissionStrength = 10.0f,
+                Smoothness = 0.0f
             }
         };
 
@@ -58,9 +61,25 @@ public class RTRendererComponent : Component
             Material = new RTMaterial.Material()
             {
                 Color = new Vector3(0.0f, 1.0f, 1.0f),
-                EmissionStrength = 0.0f
+                EmissionStrength = 0.0f,
+                Smoothness = 0.0f
             }
         };
+
+        for (int i = 0; i < 6; i++)
+        {
+            spheres[4 + i] = new RTMaterial.Sphere()
+            {
+                Position = new Vector3(i * 1.0f, 3.0f, 0.0f),
+                Radius = 0.5f,
+                Material = new RTMaterial.Material()
+                {
+                    Color = new Vector3(1.0f, 1.0f, 1.0f),
+                    EmissionStrength = 0.0f,
+                    Smoothness = 0.2f * i
+                }
+            };
+        }
 
         _spheres = new SSBO<RTMaterial.Sphere>(spheres);
 
@@ -91,6 +110,7 @@ public class RTRendererComponent : Component
     {
         Renderer r = Game.Instance.Renderer;
         _material.PrevFrame = _frame2.ColorTexture;
+        _material.Cubemap = Game.Instance.World.CurrentCamera.Skybox.Texture;
         r.Blit(null, _frame1, _material);
         r.Blit(_frame1.ColorTexture, _material);
 

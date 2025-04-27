@@ -50,8 +50,9 @@ public class CubemapTexture : IDisposable
         return textureID;
     }
 
-    public void Bind()
+    public void Bind(TextureUnit unit)
     {
+        GL.ActiveTexture(unit);
         GL.BindTexture(TextureTarget.TextureCubeMap, TextureID);
     }
 

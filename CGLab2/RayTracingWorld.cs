@@ -39,13 +39,13 @@ public class RayTracingWorld : World
         Entity cameraEntity = CreateEntity("Camera");
         Camera cam = new Camera();
         cameraEntity.AddComponent(cam);
-        cameraEntity.AddComponent(new FreeCameraController() { MovementSpeed = 2.0f });
+        //cameraEntity.AddComponent(new FreeCameraController() { MovementSpeed = 2.0f });
         cam.FOV = 60;
         cam.NearPlane = 0.1f;
         cam.FarPlane = 100f;
         cam.ClearColor = Color.White;
         cam.Target = new Framebuffer(1280, 720);
-        //cam.Skybox = new CubemapMaterial(Assets.GetCubemap("Skybox"));
+        cam.Skybox = new CubemapMaterial(Assets.GetCubemap("Skybox"));
         cam.IsOrthograthic = false;
         cam.ClearColor = Color.SkyBlue;
         cam.Entity.Transform.LocalPosition = new Vector3(-0.104f, 3.624f, 8.414f);

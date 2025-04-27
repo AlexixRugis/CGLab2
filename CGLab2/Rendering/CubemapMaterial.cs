@@ -11,6 +11,6 @@
     public override void Use()
     {
         Shader.Bind();
-        Texture.Bind();
+        Texture.Bind(OpenTK.Graphics.OpenGL.TextureUnit.Texture0);
     }
 }

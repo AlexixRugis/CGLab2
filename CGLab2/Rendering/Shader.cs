@@ -37,6 +37,11 @@ public class Shader : IDisposable
         GL.AttachShader(ShaderID, fragmentShader);
 
         GL.LinkProgram(ShaderID);
+        string linkInfoLog = GL.GetProgramInfoLog(ShaderID);
+        if (linkInfoLog != string.Empty)
+        {
+            throw new Exception(linkInfoLog); 
+        }
 
         GL.DetachShader(ShaderID, vertexShader);
         GL.DetachShader(ShaderID, fragmentShader);
@@ -58,6 +63,11 @@ public class Shader : IDisposable
     }
 
     public void SetUInt(string name, uint x)
+    {
+        GL.Uniform1(GetUniformLocation(name), x);
+    }
+
+    public void SetInt(string name, int x)
     {
         GL.Uniform1(GetUniformLocation(name), x);
     }

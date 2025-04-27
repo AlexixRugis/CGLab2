@@ -11,6 +11,8 @@ struct Material
     vec3 color;
     vec3 emissionColor;
     float emissionStrength;
+    float smoothness;
+    float metallic;
 };
 
 struct Hit
@@ -42,38 +44,46 @@ layout(std430, binding = 0) buffer SphereBuffer
 };
 
 uniform sampler2D prevFrame;
+uniform samplerCube _Skybox;
 uniform float _AccumFactor;
 uniform mat4 _CameraToWorld;
 uniform mat4 _CameraInverseProjection;
 uniform vec2 _ScreenSize;
 uniform uint _Frame;
+uniform int _SpheresCount;
 
-float randomValue(inout uint state)
+uint wang_hash(inout uint seed)
 {
-    state *= (state + 195439) * (state + 124395) * (state + 845921);
-    return state / 4294967295.0;
+    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));
+    seed *= uint(9);
+    seed = seed ^ (seed >> 4);
+    seed *= uint(0x27d4eb2d);
+    seed = seed ^ (seed >> 15);
+    return seed;
 }
 
-float randomNormalDistribution(inout uint state)
+float randomFloat(inout uint state)
 {
-    float theta = 2.0 * 3.1215926 * randomValue(state);
-    float rho = sqrt(-2.0 * log(randomValue(state)));
-    return rho * cos(theta);
+    return float(wang_hash(state)) / 4294967296.0;
 }
 
 vec3 randomDirection(inout uint state)
 {
-    float x = randomNormalDistribution(state);
-    float y = randomNormalDistribution(state);
-    float z = randomNormalDistribution(state);
-    return normalize(vec3(x, y, z));
+    float z = randomFloat(state) * 2.0f - 1.0f;
+    float a = randomFloat(state) * 6.2831853071;
+    float r = sqrt(1.0f - z * z);
+    float x = r * cos(a);
+    float y = r * sin(a);
+    return vec3(x, y, z);
 }
 
 vec3 randomHemisphere(vec3 normal, inout uint state)
 {
     vec3 dir = randomDirection(state);
-    float d = dot(dir, normal);
-    return dir * sign(d);
+    if (dot(dir, normal) < 0.0)
+        dir = -dir;
+
+    return dir;
 }
 
 Ray createCameraRay(vec2 uv)
@@ -118,7 +128,7 @@ Hit calculateCollision(Ray ray)
     Hit closest;
     closest.d = 1e10;
     
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < _SpheresCount; i++)
     {
         Sphere s = _Spheres[i];
         Hit h = hitSphere(ray, s.position, s.radius);
@@ -138,21 +148,26 @@ vec3 traceRay(Ray ray, inout uint state)
     vec3 incomingLight = vec3(0.0);
     vec3 color = vec3(1.0);
 
-    for (int i = 0; i <= 30; i++)
+    for (int i = 0; i < 10; i++)
     {
         Hit hit = calculateCollision(ray);
         if (hit.d < 1e9)
         {
             ray.origin = hit.p;
-            ray.direction = randomHemisphere(hit.n, state);
+            
+            vec3 dirDiffuse = normalize(hit.n + randomDirection(state));
+            vec3 dirSpecular = reflect(ray.direction, hit.n);
 
             Material mat = hit.mat;
+            ray.direction = mix(dirDiffuse, dirSpecular, mat.smoothness);
+
             vec3 emittedLight = mat.emissionColor * mat.emissionStrength;
             incomingLight += emittedLight * color;
-            color = color * hit.mat.color;
-        }
-        else
+
+            color *= mat.color;
+        } else
         {
+            incomingLight += texture(_Skybox, ray.direction).rgb * color;
             break;
         }
     }
@@ -168,19 +183,19 @@ void main()
     vec2 uv = glPosition.xy;
     vec2 texCoords = (vec2(0.5) + glPosition.xy * 0.5);
     ivec2 pixelCoords = ivec2(texCoords * _ScreenSize);
-    uint state = pixelCoords.y * int(_ScreenSize.x) + pixelCoords.x + _Frame * 1234;
+
+    uint state = uint(uint(pixelCoords.x) * uint(1973) + uint(pixelCoords.y) * uint(9277) + uint(_Frame) * uint(26699)) | uint(1);
 
     Ray ray = createCameraRay(uv);
     
     vec3 light = vec3(0.0f);
-    for (int rayIndex = 0; rayIndex < 100; rayIndex++)
+    for (int rayIndex = 0; rayIndex < 64; rayIndex++)
     {
         state += 1456;
         light += traceRay(ray, state);
     }
-    light = light / 100.0;
+    light = light / 64.0;
 
     vec4 previous = texture(prevFrame, texCoords);
-
-    FragColor = mix(vec4(light, 1.0), previous, _AccumFactor);
+    FragColor = mix(previous, vec4(light, 1.0), 1.0 / float(_Frame + 1));
 }
