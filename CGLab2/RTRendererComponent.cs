@@ -18,7 +18,7 @@ public class RTRendererComponent : Component, IUpdatable
         _frame1 = new Framebuffer(clientSize.X, clientSize.Y);
         _frame2 = new Framebuffer(clientSize.X, clientSize.Y);
 
-        RTMaterial.Sphere[] spheres = new RTMaterial.Sphere[10];
+        RTMaterial.Sphere[] spheres = new RTMaterial.Sphere[40];
         spheres[0] = new RTMaterial.Sphere()
         {
             Position = new Vector3(1.0f, 1.0f, 0.0f),
@@ -27,7 +27,8 @@ public class RTRendererComponent : Component, IUpdatable
             {
                 Color = new Vector3(1.0f, 1.0f, 1.0f),
                 EmissionStrength = 0.0f,
-                Smoothness = 0.8f
+                Smoothness = 0.8f,
+                Metallic = 0.2f
             }
         };
 
@@ -39,20 +40,22 @@ public class RTRendererComponent : Component, IUpdatable
             {
                 Color = new Vector3(1.0f, 0.0f, 1.0f),
                 EmissionStrength = 0.0f,
-                Smoothness = 0.5f
+                Smoothness = 0.5f,
+                Metallic = 0.1f
             }
         };
 
         spheres[2] = new RTMaterial.Sphere()
         {
-            Position = new Vector3(-6.0f, 5.0f, -2.0f),
-            Radius = 2.0f,
+            Position = new Vector3(-6.0f, 10.0f, 5.0f),
+            Radius = 4.0f,
             Material = new RTMaterial.Material()
             {
                 Color = new Vector3(0.0f, 0.0f, 0.0f),
                 EmissionColor = new Vector3(1.0f, 1.0f, 1.0f),
-                EmissionStrength = 10.0f,
-                Smoothness = 0.0f
+                EmissionStrength = 2.0f,
+                Smoothness = 0.0f,
+                Metallic = 0.1f
             }
         };
 
@@ -64,23 +67,28 @@ public class RTRendererComponent : Component, IUpdatable
             {
                 Color = new Vector3(0.0f, 1.0f, 1.0f),
                 EmissionStrength = 0.0f,
-                Smoothness = 0.0f
+                Smoothness = 0.0f,
+                Metallic = 0.1f
             }
         };
 
         for (int i = 0; i < 6; i++)
         {
-            spheres[4 + i] = new RTMaterial.Sphere()
+            for (int j = 0; j < 6; j++)
             {
-                Position = new Vector3(i * 1.0f, 3.0f, 0.0f),
-                Radius = 0.5f,
-                Material = new RTMaterial.Material()
+                spheres[4 + 6 * i + j] = new RTMaterial.Sphere()
                 {
-                    Color = new Vector3(1.0f, 0.0f, 0.0f),
-                    EmissionStrength = 0.0f,
-                    Smoothness = 0.2f * i
-                }
-            };
+                    Position = new Vector3(i * 1.0f, 3.0f + j * 1.0f, 0.0f),
+                    Radius = 0.5f,
+                    Material = new RTMaterial.Material()
+                    {
+                        Color = new Vector3(0.839f, 0.917f, 1.0f),
+                        EmissionStrength = 0.0f,
+                        Smoothness = 0.2f * i,
+                        Metallic = 0.2f * j
+                    }
+                };
+            }
         }
 
         _spheres = new SSBO<RTMaterial.Sphere>(spheres);
@@ -89,6 +97,7 @@ public class RTRendererComponent : Component, IUpdatable
         _fullscreenMat = new FullscreenMaterial();
 
         Game.Instance.Renderer.PostRenderCallback += PostRenderCallback;
+        Game.Instance.Renderer.ViewportSizeChangeCallback += ViewportSizeCallback;
 
         Game.Instance.Assets.LoadTexture("TexSeal", "Resources/Textures/seal.jpg", true);
     }
@@ -100,6 +109,7 @@ public class RTRendererComponent : Component, IUpdatable
         _frame2.Dispose();
 
         Game.Instance.Renderer.PostRenderCallback -= PostRenderCallback;
+        Game.Instance.Renderer.ViewportSizeChangeCallback -= ViewportSizeCallback;
     }
 
     public override Component Clone()
@@ -118,6 +128,17 @@ public class RTRendererComponent : Component, IUpdatable
         Framebuffer temp = _frame1;
         _frame1 = _frame2;
         _frame2 = temp;
+    }
+
+    private void ViewportSizeCallback()
+    {
+        _material.Frame = 0;
+        _frame1.Dispose();
+        _frame2.Dispose();
+
+        Vector2i clientSize = Game.Instance.ClientSize;
+        _frame1 = new Framebuffer(clientSize.X, clientSize.Y);
+        _frame2 = new Framebuffer(clientSize.X, clientSize.Y);
     }
 
     public void Update(float deltaTime)

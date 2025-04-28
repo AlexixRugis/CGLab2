@@ -5,6 +5,7 @@ public class Renderer
 {
     public uint DrawCalls { get; private set; } = 0;
     public event Action? PostRenderCallback;
+    public event Action? ViewportSizeChangeCallback;
 
     private static readonly Vertex[] _fullscreenVertices =
     {
@@ -209,5 +210,11 @@ public class Renderer
             tex.Bind(TextureUnit.Texture0);
         GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
         GL.Enable(EnableCap.DepthTest);
+    }
+
+    internal void OnResized(int x, int y)
+    {
+        GL.Viewport(0, 0, x, y);
+        ViewportSizeChangeCallback?.Invoke();
     }
 }

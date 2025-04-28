@@ -137,22 +137,23 @@ vec3 traceRay(Ray ray, inout uint state)
     vec3 incomingLight = vec3(0.0);
     vec3 color = vec3(1.0);
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 8; i++)
     {
         Hit hit = calculateCollision(ray);
         if (hit.d < 1e9)
         {
             ray.origin = hit.p;
-            
+
             vec3 dirDiffuse = normalize(hit.n + randomDirection(state));
             vec3 dirSpecular = reflect(ray.direction, hit.n);
-
-            ray.direction = mix(dirDiffuse, dirSpecular, hit.mat.smoothness);
 
             vec3 emittedLight = hit.mat.emissionColor * hit.mat.emissionStrength;
             incomingLight += emittedLight * color;
 
-            color *= hit.mat.color;
+            float isSpecular = float(randomFloat(state) < 0.04 + 0.96 * hit.mat.metallic);
+            ray.direction = mix(dirDiffuse, dirSpecular, hit.mat.smoothness * isSpecular);
+            color *= mix(vec3(0.04), hit.mat.color, max(1.0 - isSpecular, hit.mat.metallic));
+            
         } else
         {
             incomingLight += texture(_Skybox, ray.direction).rgb * color;

@@ -123,8 +123,7 @@ public class Game : GameWindow
     {
         base.OnFramebufferResize(e);
 
-        GL.Viewport(0, 0, e.Width, e.Height);
-
+        Renderer.OnResized(ClientSize.X, ClientSize.Y);
         _editor.WindowResized(ClientSize.X, ClientSize.Y);
     }
 
