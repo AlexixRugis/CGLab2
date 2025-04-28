@@ -1,7 +1,6 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 
-public class RTRendererComponent : Component
+public class RTRendererComponent : Component, IUpdatable
 {
     private SSBO<RTMaterial.Sphere> _spheres;
     private RTMaterial _material;
@@ -9,6 +8,9 @@ public class RTRendererComponent : Component
 
     private Framebuffer _frame1;
     private Framebuffer _frame2;
+
+    private Vector3 _lastPosition;
+    private Quaternion _lastRotation;
 
     public override void OnStart()
     {
@@ -74,7 +76,7 @@ public class RTRendererComponent : Component
                 Radius = 0.5f,
                 Material = new RTMaterial.Material()
                 {
-                    Color = new Vector3(1.0f, 1.0f, 1.0f),
+                    Color = new Vector3(1.0f, 0.0f, 0.0f),
                     EmissionStrength = 0.0f,
                     Smoothness = 0.2f * i
                 }
@@ -117,5 +119,22 @@ public class RTRendererComponent : Component
         Framebuffer temp = _frame1;
         _frame1 = _frame2;
         _frame2 = temp;
+    }
+
+    public void Update(float deltaTime)
+    {
+        Camera cam = Entity.World.CurrentCamera;
+        if (cam.Transform.LocalRotation != _lastRotation ||
+            cam.Transform.LocalPosition != _lastPosition)
+        {
+            _lastPosition = cam.Transform.LocalPosition;
+            _lastRotation = cam.Transform.LocalRotation;
+            _material.Frame = 0;
+        }
+        else
+        {
+            _material.Frame++;
+        }
+
     }
 }

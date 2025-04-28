@@ -17,29 +17,11 @@ public class RayTracingWorld : World
 
     public override void LoadEntities()
     {
-        // sphere
-        Entity testSphere = Assets.GetEntity("PrefabSphere").Clone();
-        testSphere.Transform.LocalPosition = new Vector3(0.0f, 0.0f, 0.0f);
-
-        // light
-        Entity lightEntity = CreateEntity("Light");
-        Light l = new Light()
-        {
-            Color = new Color4(248, 237, 203, 255)
-        };
-        lightEntity.AddComponent(l);
-        lightEntity.AddComponent(new StaticMeshComponent()
-        {
-            Mesh = Assets.GetMesh("MeshQuad"),
-            Materials = new List<Material>() { new UnlitTexturedMaterial(Assets.GetTexture("Blank")) }
-        });
-        lightEntity.Transform.LocalPosition = new Vector3(-5.0F, 10.0f, 100.0f);
-
         // camera
         Entity cameraEntity = CreateEntity("Camera");
         Camera cam = new Camera();
         cameraEntity.AddComponent(cam);
-        //cameraEntity.AddComponent(new FreeCameraController() { MovementSpeed = 2.0f });
+        cameraEntity.AddComponent(new FreeCameraController() { MovementSpeed = 2.0f });
         cam.FOV = 60;
         cam.NearPlane = 0.1f;
         cam.FarPlane = 100f;
