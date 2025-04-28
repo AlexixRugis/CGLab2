@@ -29,7 +29,6 @@ public class RTMaterial : Material
     private SSBO<Sphere> _spheres;
 
     public uint Frame { get; set; } = 0;
-    public float AccumFactor { get; set; } = 0.8f;
     public Texture PrevFrame { get; set; }
     public CubemapTexture Cubemap { get; set; }
     
@@ -55,7 +54,6 @@ public class RTMaterial : Material
         Shader.SetInt("_Skybox", 1);
         Shader.SetInt("_SpheresCount", _spheres.Count);
         Shader.SetUInt("_Frame", Frame);
-        Shader.SetFloat("_AccumFactor", AccumFactor);
         Shader.SetVector2("_ScreenSize", screenSize);
         Shader.SetMatrix("_CameraToWorld", ref invTransform);
         Shader.SetMatrix("_CameraInverseProjection", ref invProj);

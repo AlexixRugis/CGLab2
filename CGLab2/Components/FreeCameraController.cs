@@ -34,13 +34,6 @@ public class FreeCameraController : Component, IUpdatable
 
     public void Update(float deltaTime)
     {
-        if (!_mouseState.IsButtonDown(MouseButton.Right))
-            return;
-
-        Vector3 forward = Entity.Transform.Forward;
-        Vector3 right = Entity.Transform.Right;
-        Vector3 up = Entity.Transform.Up;
-
         if (_keyboardState.IsKeyPressed(Keys.Escape))
         {
             if (Game.Instance.CursorState == OpenTK.Windowing.Common.CursorState.Normal)
@@ -50,6 +43,15 @@ public class FreeCameraController : Component, IUpdatable
 
             _firstMove = true;
         }
+
+
+        if (!_mouseState.IsButtonDown(MouseButton.Right))
+            return;
+
+        Vector3 forward = Entity.Transform.Forward;
+        Vector3 right = Entity.Transform.Right;
+        Vector3 up = Entity.Transform.Up;
+
 
         Vector3 targetVelocity = Vector3.Zero;
         if (_keyboardState.IsKeyDown(Keys.A))

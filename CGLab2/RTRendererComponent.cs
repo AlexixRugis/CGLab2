@@ -86,7 +86,6 @@ public class RTRendererComponent : Component, IUpdatable
         _spheres = new SSBO<RTMaterial.Sphere>(spheres);
 
         _material = new RTMaterial(Entity.World.CurrentCamera, _spheres);
-        _material.AccumFactor = 0.95f;
         _fullscreenMat = new FullscreenMaterial();
 
         Game.Instance.Renderer.PostRenderCallback += PostRenderCallback;

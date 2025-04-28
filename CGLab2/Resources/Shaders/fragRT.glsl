@@ -45,7 +45,6 @@ layout(std430, binding = 0) buffer SphereBuffer
 
 uniform sampler2D prevFrame;
 uniform samplerCube _Skybox;
-uniform float _AccumFactor;
 uniform mat4 _CameraToWorld;
 uniform mat4 _CameraInverseProjection;
 uniform vec2 _ScreenSize;
@@ -77,15 +76,6 @@ vec3 randomDirection(inout uint state)
     return vec3(x, y, z);
 }
 
-vec3 randomHemisphere(vec3 normal, inout uint state)
-{
-    vec3 dir = randomDirection(state);
-    if (dot(dir, normal) < 0.0)
-        dir = -dir;
-
-    return dir;
-}
-
 Ray createCameraRay(vec2 uv)
 {
     vec3 origin = (_CameraToWorld * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -102,23 +92,23 @@ Hit hitSphere(Ray ray, vec3 center, float radius)
     Hit hit;
     hit.d = -1.0;
 
+    float r2 = radius * radius;
     vec3 oc = ray.origin - center;
-    float a = dot(ray.direction, ray.direction);
-    float b = 2.0 * dot(oc, ray.direction);
-    float c = dot(oc, oc) - radius * radius;
-    float discriminant = b * b - 4.0 * a * c;
-
-    if (discriminant >= 0.0)
+    vec3 cr = cross(ray.direction, oc);
+    if (dot(cr, cr) > r2)
     {
-        float dst = (-b - sqrt(discriminant)) / (2.0 * a);
-        
-        if (dst >= 0.0)
-        {
-            hit.d = dst;
-            hit.p = ray.origin + ray.direction * dst;
-            hit.n = normalize(hit.p - center);
-        }
+        return hit;
     }
+
+    float b = dot(oc, ray.direction);
+    float c = dot(oc, oc) - r2;
+    float discriminant = b * b - c;
+
+    float dst = -b - sqrt(discriminant);
+        
+    hit.d = dst;
+    hit.p = ray.origin + ray.direction * dst;
+    hit.n = normalize(hit.p - center);
 
     return hit;
 }
@@ -130,13 +120,12 @@ Hit calculateCollision(Ray ray)
     
     for (int i = 0; i < _SpheresCount; i++)
     {
-        Sphere s = _Spheres[i];
-        Hit h = hitSphere(ray, s.position, s.radius);
+        Hit h = hitSphere(ray, _Spheres[i].position, _Spheres[i].radius);
 
         if (h.d >= 0.0 && h.d < closest.d)
         {
             closest = h;
-            closest.mat = s.mat;
+            closest.mat = _Spheres[i].mat;
         }
     }
 
@@ -148,7 +137,7 @@ vec3 traceRay(Ray ray, inout uint state)
     vec3 incomingLight = vec3(0.0);
     vec3 color = vec3(1.0);
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 5; i++)
     {
         Hit hit = calculateCollision(ray);
         if (hit.d < 1e9)
@@ -158,13 +147,12 @@ vec3 traceRay(Ray ray, inout uint state)
             vec3 dirDiffuse = normalize(hit.n + randomDirection(state));
             vec3 dirSpecular = reflect(ray.direction, hit.n);
 
-            Material mat = hit.mat;
-            ray.direction = mix(dirDiffuse, dirSpecular, mat.smoothness);
+            ray.direction = mix(dirDiffuse, dirSpecular, hit.mat.smoothness);
 
-            vec3 emittedLight = mat.emissionColor * mat.emissionStrength;
+            vec3 emittedLight = hit.mat.emissionColor * hit.mat.emissionStrength;
             incomingLight += emittedLight * color;
 
-            color *= mat.color;
+            color *= hit.mat.color;
         } else
         {
             incomingLight += texture(_Skybox, ray.direction).rgb * color;
@@ -189,12 +177,12 @@ void main()
     Ray ray = createCameraRay(uv);
     
     vec3 light = vec3(0.0f);
-    for (int rayIndex = 0; rayIndex < 64; rayIndex++)
+    for (int rayIndex = 0; rayIndex < 32; rayIndex++)
     {
         state += 1456;
         light += traceRay(ray, state);
     }
-    light = light / 64.0;
+    light = light / 32.0;
 
     vec4 previous = texture(prevFrame, texCoords);
     FragColor = mix(previous, vec4(light, 1.0), 1.0 / float(_Frame + 1));
