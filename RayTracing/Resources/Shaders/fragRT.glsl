@@ -241,8 +241,9 @@ vec3 traceRay(Ray ray, inout uint state)
 
             vec3 F0 = mix(vec3(0.04), hit.mat.color, hit.mat.metallic);
             vec3 fresnel = fresnelSchlick(cosTheta, F0);
+            float reflectProb = dot(fresnel, vec3(0.2126f, 0.7152f, 0.0722f));
 
-            float isSpecular = float(randomFloat(state) < fresnel.r);
+            float isSpecular = float(randomFloat(state) < reflectProb);
             ray.direction = mix(dirDiffuse, dirSpecular, hit.mat.smoothness * isSpecular);
             color *= mix(vec3(1.0f), hit.mat.color, max(1.0f - isSpecular, hit.mat.metallic));
             
