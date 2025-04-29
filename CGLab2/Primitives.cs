@@ -2,7 +2,7 @@
 
 public static class Primitives
 {
-    private static readonly Vertex[] _quadVertices =
+    public static readonly Vertex[] QuadVertices =
     {
         new Vertex() { Position = new Vector3(0.5f, 0.5f, 0.0f), UV = new Vector2(1.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
         new Vertex() { Position = new Vector3(0.5f, -0.5f, 0.0f), UV = new Vector2(1.0f,0.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) },
@@ -10,13 +10,13 @@ public static class Primitives
         new Vertex() { Position = new Vector3(-0.5f, 0.5f, 0.0f), UV = new Vector2(0.0f,1.0f), Normal = new Vector3(0.0f, 0.0f, -1.0f) }
     };
 
-    private static readonly uint[] _quadIndices =
+    public static readonly uint[] QuadIndices =
     {
         0, 1, 3,
         1, 2, 3
     };
 
-    private static readonly Vertex[] _cubeVertices =
+    public static readonly Vertex[] CubeVertices =
     {
         // Front face
         new Vertex() { Position = new Vector3(-0.5f, -0.5f,  0.5f), UV = new Vector2(0.0f, 0.0f), Normal = new Vector3(0.0f, 0.0f,  1.0f) },
@@ -55,7 +55,7 @@ public static class Primitives
         new Vertex() { Position = new Vector3(-0.5f, -0.5f,  0.5f), UV = new Vector2(0.0f, 1.0f), Normal = new Vector3(0.0f, -1.0f, 0.0f) },
     };
 
-    private static readonly uint[] _cubeIndices =
+    public static readonly uint[] CubeIndices =
     {
         // Front face
         0, 1, 2,  2, 3, 0,
@@ -73,9 +73,9 @@ public static class Primitives
 
     public static void Load(AssetLoader assets)
     {
-        assets.LoadMesh("MeshQuad", _quadVertices, _quadIndices,
+        assets.LoadMesh("MeshQuad", QuadVertices, QuadIndices,
             new Mesh.SubMeshInfo[] { new() { Index = 0, Size = 6 } });
-        assets.LoadMesh("MeshCube", _cubeVertices, _cubeIndices,
+        assets.LoadMesh("MeshCube", CubeVertices, CubeIndices,
             new Mesh.SubMeshInfo[] { new() { Index = 0, Size = 36 } });
 
         Entity quadEntity = new Entity(null, "Quad");

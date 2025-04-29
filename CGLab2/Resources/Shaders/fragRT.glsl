@@ -1,5 +1,10 @@
 #version 430 core
 
+struct Vertex
+{
+    vec3 position;
+};
+
 struct Ray
 {
     vec3 origin;
@@ -30,6 +35,16 @@ struct Sphere
     Material mat;
 };
 
+struct MeshInfo
+{
+    int startIndex;
+    int indexCount;
+
+    mat4 transform;
+
+    Material mat;
+};
+
 Ray createRay(vec3 origin, vec3 direction)
 {
     Ray r;
@@ -43,6 +58,21 @@ layout(std430, binding = 0) buffer SphereBuffer
     Sphere _Spheres[];
 };
 
+layout(std430, binding = 1) buffer VertexBuffer
+{
+    Vertex _Vertices[];
+};
+
+layout(std430, binding = 2) buffer IndexBuffer
+{
+    uint _Indices[];
+};
+
+layout(std430, binding = 3) buffer MeshBuffer
+{
+    MeshInfo _Meshes[];
+};
+
 uniform sampler2D prevFrame;
 uniform samplerCube _Skybox;
 uniform mat4 _CameraToWorld;
@@ -50,6 +80,7 @@ uniform mat4 _CameraInverseProjection;
 uniform vec2 _ScreenSize;
 uniform uint _Frame;
 uniform int _SpheresCount;
+uniform int _MeshesCount;
 
 uint wang_hash(inout uint seed)
 {
@@ -113,6 +144,38 @@ Hit hitSphere(Ray ray, vec3 center, float radius)
     return hit;
 }
 
+Hit hitTriangle(
+    Ray ray,
+    vec3 v0, vec3 v1, vec3 v2
+)
+{
+    Hit hit;
+    hit.d = -1.0;
+
+    vec3 e1 = v1 - v0;
+    vec3 e2 = v2 - v0;
+    vec3 p = cross(ray.direction, e2);
+    float det = dot(e1, p);
+
+    if (abs(det) < 1e-8) return hit;
+
+    float invDet = 1.0 / det;
+    vec3 T = ray.origin - v0;
+    vec2 uv;
+    uv.x = dot(T, p) * invDet;
+    if (uv.x < 0.0 || uv.x > 1.0) return hit;
+
+    vec3 q = cross(T, e1);
+    uv.y = dot(ray.direction, q) * invDet;
+    if (uv.y < 0.0 || uv.x + uv.y > 1.0) return hit;
+
+    hit.d = dot(e2, q) * invDet;
+    hit.p = ray.origin + ray.direction * (hit.d - 0.01);
+    hit.n = normalize(cross(e1, e2));
+
+    return hit;
+}
+
 Hit calculateCollision(Ray ray)
 {
     Hit closest;
@@ -126,6 +189,25 @@ Hit calculateCollision(Ray ray)
         {
             closest = h;
             closest.mat = _Spheres[i].mat;
+        }
+    }
+
+    for (int i = 0; i < _MeshesCount; i++)
+    {
+        for (int j = _Meshes[i].startIndex; j < _Meshes[i].startIndex + _Meshes[i].indexCount; j+=3)
+        {
+            (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0)).xyz;
+
+            Hit h = hitTriangle(ray,
+                (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0)).xyz,
+                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 1]].position, 1.0)).xyz,
+                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 2]].position, 1.0)).xyz);
+
+            if (h.d >= 0.0 && h.d < closest.d)
+            {
+                closest = h;
+                closest.mat = _Meshes[i].mat;
+            }
         }
     }
 
@@ -178,12 +260,12 @@ void main()
     Ray ray = createCameraRay(uv);
     
     vec3 light = vec3(0.0f);
-    for (int rayIndex = 0; rayIndex < 32; rayIndex++)
+    for (int rayIndex = 0; rayIndex < 2; rayIndex++)
     {
         state += 1456;
         light += traceRay(ray, state);
     }
-    light = light / 32.0;
+    light = light / 2.0;
 
     vec4 previous = texture(prevFrame, texCoords);
     FragColor = mix(previous, vec4(light, 1.0), 1.0 / float(_Frame + 1));

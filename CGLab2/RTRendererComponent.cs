@@ -3,6 +3,11 @@
 public class RTRendererComponent : Component, IUpdatable
 {
     private SSBO<RTMaterial.Sphere> _spheres;
+    private SSBO<RTMaterial.Vertex> _vertices;
+    private SSBO<uint> _indices;
+    private SSBO<RTMaterial.MeshInfo> _meshes;
+
+
     private RTMaterial _material;
     private FullscreenMaterial _fullscreenMat;
 
@@ -93,7 +98,51 @@ public class RTRendererComponent : Component, IUpdatable
 
         _spheres = new SSBO<RTMaterial.Sphere>(spheres);
 
-        _material = new RTMaterial(Entity.World.CurrentCamera, _spheres);
+        RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[Primitives.CubeVertices.Length];
+        for (int i = 0; i <  Primitives.CubeVertices.Length; i++)
+            vertices[i].Position = Primitives.CubeVertices[i].Position;
+        uint[] indices = Primitives.CubeIndices;
+
+        RTMaterial.MeshInfo[] meshInfos = new RTMaterial.MeshInfo[2];
+        meshInfos[0] = new RTMaterial.MeshInfo()
+        {
+            StartIndex = 0,
+            IndexCount = indices.Length,
+            Transform = Matrix4.CreateTranslation(-1.0f, 1.0f, -1.5f),
+            Material = new RTMaterial.Material()
+            {
+                Color = new Vector3(1.0f, 1.0f, 0.0f),
+                EmissionStrength = 0.0f,
+                Smoothness = 1.0f,
+                Metallic = 0.9f
+            }
+        };
+
+        Matrix4 tr2 =
+            Matrix4.CreateScale(1.0f, 10.0f, 10.0f) *
+            Matrix4.CreateFromAxisAngle(Vector3.UnitY, 1.0f) *
+            Matrix4.CreateTranslation(10.0f, 3.0f, -5.0f);
+
+        meshInfos[1] = new RTMaterial.MeshInfo()
+        {
+            StartIndex = 0,
+            IndexCount = indices.Length,
+            Transform = tr2,
+            Material = new RTMaterial.Material()
+            {
+                Color = new Vector3(1.0f, 0.0f, 0.7843f),
+                EmissionStrength = 0.0f,
+                Smoothness = 0.8f,
+                Metallic = 0.5f
+            }
+        };
+
+        _vertices = new SSBO<RTMaterial.Vertex>(vertices);
+        _indices = new SSBO<uint>(indices);
+        _meshes = new SSBO<RTMaterial.MeshInfo>(meshInfos);
+
+        _material = new RTMaterial(Entity.World.CurrentCamera, 
+            _spheres, _vertices, _indices, _meshes);
         _fullscreenMat = new FullscreenMaterial();
 
         Game.Instance.Renderer.PostRenderCallback += PostRenderCallback;
@@ -105,6 +154,9 @@ public class RTRendererComponent : Component, IUpdatable
     public override void OnDestroy()
     {
         _spheres.Dispose();
+        _vertices.Dispose();
+        _indices.Dispose();
+        _meshes.Dispose();
         _frame1.Dispose();
         _frame2.Dispose();
 
