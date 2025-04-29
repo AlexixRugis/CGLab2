@@ -71,30 +71,22 @@ public class Game : GameWindow
         GL.DebugMessageCallback(DebugCallback, IntPtr.Zero);
 
         Assets.LoadShader("ShaderTexUnlit",
-            "Resources/Shaders/vert.glsl",
-            "Resources/Shaders/frag.glsl");
+            "CoreResources/Shaders/vert.glsl",
+            "CoreResources/Shaders/frag.glsl");
 
         Assets.LoadShader("ShaderTexLit",
-            "Resources/Shaders/vertLit.glsl",
-            "Resources/Shaders/fragLit.glsl");
+            "CoreResources/Shaders/vertLit.glsl",
+            "CoreResources/Shaders/fragLit.glsl");
 
         Assets.LoadShader("ShaderSkybox",
-            "Resources/Shaders/vertSkybox.glsl",
-            "Resources/Shaders/fragSkybox.glsl");
+            "CoreResources/Shaders/vertSkybox.glsl",
+            "CoreResources/Shaders/fragSkybox.glsl");
 
         Assets.LoadShader("ShaderFullscreen",
-            "Resources/Shaders/vertFullscreen.glsl",
-            "Resources/Shaders/fragFullscreen.glsl");
+            "CoreResources/Shaders/vertFullscreen.glsl",
+            "CoreResources/Shaders/fragFullscreen.glsl");
 
-        Assets.LoadCubemap("Skybox", new string[] {
-        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_2_Left+X.png",
-        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_3_Right-X.png",
-        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_4_Up+Y.png",
-        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_5_Down-Y.png",
-        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_0_Front+Z.png",
-        "Resources/Textures/Skybox/Epic_GloriousPink_Cam_1_Back-Z.png",}, true);
-
-        Assets.LoadTexture("Blank", "Resources/Textures/blank.png", false);
+        Assets.LoadTexture("Blank", "CoreResources/Textures/blank.png", false);
 
         Primitives.Load(Assets);
 
