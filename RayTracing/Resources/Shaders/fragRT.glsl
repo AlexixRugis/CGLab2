@@ -94,13 +94,13 @@ uint wang_hash(inout uint seed)
 
 float randomFloat(inout uint state)
 {
-    return float(wang_hash(state)) / 4294967296.0;
+    return float(wang_hash(state)) / 4294967296.0f;
 }
 
 vec3 randomDirection(inout uint state)
 {
     float z = randomFloat(state) * 2.0f - 1.0f;
-    float a = randomFloat(state) * 6.2831853071;
+    float a = randomFloat(state) * 6.2831853071f;
     float r = sqrt(1.0f - z * z);
     float x = r * cos(a);
     float y = r * sin(a);
@@ -109,10 +109,10 @@ vec3 randomDirection(inout uint state)
 
 Ray createCameraRay(vec2 uv)
 {
-    vec3 origin = (_CameraToWorld * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    vec3 origin = (_CameraToWorld * vec4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
 
-    vec3 direction = (_CameraInverseProjection * vec4(uv, 0.0, 1.0)).xyz;
-    direction = (_CameraToWorld * vec4(direction, 0.0)).xyz;
+    vec3 direction = (_CameraInverseProjection * vec4(uv, 0.0f, 1.0f)).xyz;
+    direction = (_CameraToWorld * vec4(direction, 0.0f)).xyz;
     direction = normalize(direction);
 
     return createRay(origin, direction);
@@ -121,7 +121,7 @@ Ray createCameraRay(vec2 uv)
 Hit hitSphere(Ray ray, vec3 center, float radius)
 {
     Hit hit;
-    hit.d = -1.0;
+    hit.d = -1.0f;
 
     float r2 = radius * radius;
     vec3 oc = ray.origin - center;
@@ -150,27 +150,27 @@ Hit hitTriangle(
 )
 {
     Hit hit;
-    hit.d = -1.0;
+    hit.d = -1.0f;
 
     vec3 e1 = v1 - v0;
     vec3 e2 = v2 - v0;
     vec3 pvec = cross(ray.direction, e2);
     float det = dot(e1, pvec);
 
-    if (abs(det) < 1e-8) return hit;
+    if (abs(det) < 1e-8f) return hit;
 
-    float invDet = 1.0 / det;
+    float invDet = 1.0f / det;
     vec3 tvec = ray.origin - v0;
     vec2 uv;
     uv.x = dot(tvec, pvec) * invDet;
-    if (uv.x < 0.0 || uv.x > 1.0) return hit;
+    if (uv.x < 0.0f || uv.x > 1.0f) return hit;
 
     vec3 qvec = cross(tvec, e1);
     uv.y = dot(ray.direction, qvec) * invDet;
-    if (uv.y < 0.0 || uv.x + uv.y > 1.0) return hit;
+    if (uv.y < 0.0f || uv.x + uv.y > 1.0f) return hit;
 
     hit.d = dot(e2, qvec) * invDet;
-    hit.p = ray.origin + ray.direction * (hit.d - 0.01);
+    hit.p = ray.origin + ray.direction * (hit.d - 0.01f);
     hit.n = normalize(cross(e1, e2));
 
     return hit;
@@ -179,13 +179,13 @@ Hit hitTriangle(
 Hit calculateCollision(Ray ray)
 {
     Hit closest;
-    closest.d = 1e10;
+    closest.d = 1e10f;
     
     for (int i = 0; i < _SpheresCount; i++)
     {
         Hit h = hitSphere(ray, _Spheres[i].position, _Spheres[i].radius);
 
-        if (h.d >= 0.0 && h.d < closest.d)
+        if (h.d >= 0.0f && h.d < closest.d)
         {
             closest = h;
             closest.mat = _Spheres[i].mat;
@@ -196,14 +196,14 @@ Hit calculateCollision(Ray ray)
     {
         for (int j = _Meshes[i].startIndex; j < _Meshes[i].startIndex + _Meshes[i].indexCount; j+=3)
         {
-            (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0)).xyz;
+            (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0f)).xyz;
 
             Hit h = hitTriangle(ray,
-                (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0)).xyz,
-                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 1]].position, 1.0)).xyz,
-                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 2]].position, 1.0)).xyz);
+                (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0f)).xyz,
+                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 1]].position, 1.0f)).xyz,
+                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 2]].position, 1.0f)).xyz);
 
-            if (h.d >= 0.0 && h.d < closest.d)
+            if (h.d >= 0.0f && h.d < closest.d)
             {
                 closest = h;
                 closest.mat = _Meshes[i].mat;
@@ -214,15 +214,20 @@ Hit calculateCollision(Ray ray)
     return closest;
 }
 
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
 vec3 traceRay(Ray ray, inout uint state)
 {
-    vec3 incomingLight = vec3(0.0);
-    vec3 color = vec3(1.0);
+    vec3 incomingLight = vec3(0.0f);
+    vec3 color = vec3(1.0f);
 
     for (int i = 0; i < 8; i++)
     {
         Hit hit = calculateCollision(ray);
-        if (hit.d < 1e9)
+        if (hit.d < 1e9f)
         {
             ray.origin = hit.p;
 
@@ -232,9 +237,14 @@ vec3 traceRay(Ray ray, inout uint state)
             vec3 emittedLight = hit.mat.emissionColor * hit.mat.emissionStrength;
             incomingLight += emittedLight * color;
 
-            float isSpecular = float(randomFloat(state) < 0.04 + 0.96 * hit.mat.metallic);
+            float cosTheta = max(dot(hit.n, -ray.direction), 0.0);
+
+            vec3 F0 = mix(vec3(0.04), hit.mat.color, hit.mat.metallic);
+            vec3 fresnel = fresnelSchlick(cosTheta, F0);
+
+            float isSpecular = float(randomFloat(state) < fresnel.r);
             ray.direction = mix(dirDiffuse, dirSpecular, hit.mat.smoothness * isSpecular);
-            color *= mix(vec3(0.04), hit.mat.color, max(1.0 - isSpecular, hit.mat.metallic));
+            color *= mix(vec3(1.0f), hit.mat.color, max(1.0f - isSpecular, hit.mat.metallic));
             
         } else
         {
@@ -252,7 +262,7 @@ in vec3 glPosition;
 void main()
 {
     vec2 uv = glPosition.xy;
-    vec2 texCoords = (vec2(0.5) + glPosition.xy * 0.5);
+    vec2 texCoords = (vec2(0.5f) + glPosition.xy * 0.5f);
     ivec2 pixelCoords = ivec2(texCoords * _ScreenSize);
 
     uint state = uint(uint(pixelCoords.x) * uint(1973) + uint(pixelCoords.y) * uint(9277) + uint(_Frame) * uint(26699)) | uint(1);
@@ -265,8 +275,8 @@ void main()
         state += 1456;
         light += traceRay(ray, state);
     }
-    light = light / 2.0;
+    light = light / 2.0f;
 
     vec4 previous = texture(prevFrame, texCoords);
-    FragColor = mix(previous, vec4(light, 1.0), 1.0 / float(_Frame + 1));
+    FragColor = mix(previous, vec4(light, 1.0f), 1.0f / float(_Frame + 1));
 }
