@@ -154,22 +154,22 @@ Hit hitTriangle(
 
     vec3 e1 = v1 - v0;
     vec3 e2 = v2 - v0;
-    vec3 p = cross(ray.direction, e2);
-    float det = dot(e1, p);
+    vec3 pvec = cross(ray.direction, e2);
+    float det = dot(e1, pvec);
 
     if (abs(det) < 1e-8) return hit;
 
     float invDet = 1.0 / det;
-    vec3 T = ray.origin - v0;
+    vec3 tvec = ray.origin - v0;
     vec2 uv;
-    uv.x = dot(T, p) * invDet;
+    uv.x = dot(tvec, pvec) * invDet;
     if (uv.x < 0.0 || uv.x > 1.0) return hit;
 
-    vec3 q = cross(T, e1);
-    uv.y = dot(ray.direction, q) * invDet;
+    vec3 qvec = cross(tvec, e1);
+    uv.y = dot(ray.direction, qvec) * invDet;
     if (uv.y < 0.0 || uv.x + uv.y > 1.0) return hit;
 
-    hit.d = dot(e2, q) * invDet;
+    hit.d = dot(e2, qvec) * invDet;
     hit.p = ray.origin + ray.direction * (hit.d - 0.01);
     hit.n = normalize(cross(e1, e2));
 
