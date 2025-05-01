@@ -102,9 +102,9 @@ public class RTRendererComponent : Component, IUpdatable
         Mesh teapotMesh = Game.Instance.Assets.GetEntity("Teapot")
             .GetChild("teapot").GetComponent<StaticMeshComponent>().Mesh;
 
-        BVHMesh bvhMesh = new BVHMesh(teapotMesh.Vertices, teapotMesh.Indices, 16);
+        BVHMesh bvhMesh = new BVHMesh(teapotMesh.Vertices, teapotMesh.Indices, 20, 20);
 
-        RTMaterial.MeshInfo[] meshInfos = new RTMaterial.MeshInfo[1];
+        RTMaterial.MeshInfo[] meshInfos = new RTMaterial.MeshInfo[2];
 
         Matrix4 tr1 =
             Matrix4.CreateScale(0.03f) *
@@ -126,21 +126,22 @@ public class RTRendererComponent : Component, IUpdatable
 
         Matrix4 tr2 =
             Matrix4.CreateScale(0.1f) *
-            Matrix4.CreateFromAxisAngle(Vector3.UnitY, 1.0f) *
+            Matrix4.CreateFromAxisAngle(Vector3.UnitY, -1.0f) *
             Matrix4.CreateTranslation(10.0f, 3.0f, -5.0f);
 
-        //meshInfos[1] = new RTMaterial.MeshInfo()
-        //{
-        //    NodeIndex = 0,
-        //    Transform = tr2,
-        //    Material = new RTMaterial.Material()
-        //    {
-        //        Color = new Vector3(1.0f, 0.0f, 0.7843f),
-        //        EmissionStrength = 0.0f,
-        //        Smoothness = 0.8f,
-        //        Metallic = 0.5f
-        //    }
-        //};
+        meshInfos[1] = new RTMaterial.MeshInfo()
+        {
+            NodeIndex = 0,
+            Transform = tr2,
+            InvTransform = Matrix4.Invert(tr2),
+            Material = new RTMaterial.Material()
+            {
+                Color = new Vector3(1.0f, 0.0f, 0.7843f),
+                EmissionStrength = 0.0f,
+                Smoothness = 0.8f,
+                Metallic = 0.5f
+            }
+        };
 
         RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[bvhMesh.Vertices.Length];
         for (int i = 0; i < bvhMesh.Vertices.Length; i++)

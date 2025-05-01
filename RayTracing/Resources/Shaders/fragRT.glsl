@@ -192,7 +192,7 @@ Hit hitTriangle(
     return hit;
 }
 
-bool checkAABB(Ray ray, vec3 minVec, vec3 maxVec)
+bool checkAABB(Ray ray, vec3 minVec, vec3 maxVec, inout float largestTMin)
 {
     vec3 t1 = (minVec - ray.origin) / ray.direction;
     vec3 t2 = (maxVec - ray.origin) / ray.direction;
@@ -200,7 +200,7 @@ bool checkAABB(Ray ray, vec3 minVec, vec3 maxVec)
     vec3 tMin = min(t1, t2);
     vec3 tMax = max(t1, t2);
 
-    float largestTMin = max(max(tMin.x, tMin.y), tMin.z);
+    largestTMin = max(max(tMin.x, tMin.y), tMin.z);
     float smallestTMax = min(min(tMax.x, tMax.y), tMax.z);
 
     return largestTMin <= smallestTMax && smallestTMax >= 0.0;
@@ -211,7 +211,7 @@ Hit traverseBVH(Ray ray, int index)
     Hit closest;
     closest.d = 1e10f;
 
-    int stack[64];
+    int stack[32];
     int stackSize = 0;
 
     stack[stackSize++] = index;
@@ -219,19 +219,30 @@ Hit traverseBVH(Ray ray, int index)
     while (stackSize > 0)
     {
         stackSize--;
-        int curind = stack[stackSize];
+        BVHNode cur = _Nodes[stack[stackSize]];
 
-        if (checkAABB(ray, _Nodes[curind].posMin, _Nodes[curind].posMax))
+        float dist;
+        if (checkAABB(ray, cur.posMin, cur.posMax, dist) && dist <= closest.d)
         {
-            if (_Nodes[curind].indicesCount == 0)
+            if (cur.indicesCount == 0)
             {
-                stack[stackSize++] = _Nodes[curind].childIndex;
-                stack[stackSize++] = _Nodes[curind].childIndex + 1;
+                vec3 c1 = (_Nodes[cur.childIndex].posMin + _Nodes[cur.childIndex].posMax) * 0.5f;
+                vec3 c2 = (_Nodes[cur.childIndex].posMin + _Nodes[cur.childIndex + 1].posMax) * 0.5f;
+
+                if (dot(ray.origin, c1) <= dot(ray.origin, c2))
+                {
+                    stack[stackSize++] = cur.childIndex;
+                    stack[stackSize++] = cur.childIndex + 1;
+                }
+                else
+                {
+                    stack[stackSize++] = cur.childIndex + 1;
+                    stack[stackSize++] = cur.childIndex;
+                }
             }
             else
             {
-
-                for (int i = _Nodes[curind].childIndex; i < _Nodes[curind].childIndex + _Nodes[curind].indicesCount; i += 3)
+                for (int i = cur.childIndex; i < cur.childIndex + cur.indicesCount; i += 3)
                 {
                     Hit h = hitTriangle(ray,
                         _Indices[i],
