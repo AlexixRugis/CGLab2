@@ -6,7 +6,7 @@ public class RTRendererComponent : Component, IUpdatable
     private SSBO<RTMaterial.Vertex> _vertices;
     private SSBO<uint> _indices;
     private SSBO<RTMaterial.MeshInfo> _meshes;
-
+    private SSBO<BVHMesh.BVHNode> _nodes;
 
     private RTMaterial _material;
     private FullscreenMaterial _fullscreenMat;
@@ -100,22 +100,21 @@ public class RTRendererComponent : Component, IUpdatable
 
 
         Mesh teapotMesh = Game.Instance.Assets.GetEntity("Teapot")
-            .GetChild("Base").GetComponent<StaticMeshComponent>().Mesh;
+            .GetChild("teapot").GetComponent<StaticMeshComponent>().Mesh;
 
-        BVHMesh bvhMesh = new BVHMesh(teapotMesh.Vertices, teapotMesh.Indices);
+        BVHMesh bvhMesh = new BVHMesh(teapotMesh.Vertices, teapotMesh.Indices, 16);
 
+        RTMaterial.MeshInfo[] meshInfos = new RTMaterial.MeshInfo[1];
 
-        RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[Primitives.CubeVertices.Length];
-        for (int i = 0; i <  Primitives.CubeVertices.Length; i++)
-            vertices[i].Position = Primitives.CubeVertices[i].Position;
-        uint[] indices = Primitives.CubeIndices;
+        Matrix4 tr1 =
+            Matrix4.CreateScale(0.03f) *
+            Matrix4.CreateTranslation(-3.0f, 1.0f, -1.5f);
 
-        RTMaterial.MeshInfo[] meshInfos = new RTMaterial.MeshInfo[2];
         meshInfos[0] = new RTMaterial.MeshInfo()
         {
-            StartIndex = 0,
-            IndexCount = indices.Length,
-            Transform = Matrix4.CreateTranslation(-1.0f, 1.0f, -1.5f),
+            NodeIndex = 0,
+            Transform = tr1,
+            InvTransform = Matrix4.Invert(tr1),
             Material = new RTMaterial.Material()
             {
                 Color = new Vector3(1.0f, 1.0f, 0.0f),
@@ -126,30 +125,37 @@ public class RTRendererComponent : Component, IUpdatable
         };
 
         Matrix4 tr2 =
-            Matrix4.CreateScale(1.0f, 10.0f, 10.0f) *
+            Matrix4.CreateScale(0.1f) *
             Matrix4.CreateFromAxisAngle(Vector3.UnitY, 1.0f) *
             Matrix4.CreateTranslation(10.0f, 3.0f, -5.0f);
 
-        meshInfos[1] = new RTMaterial.MeshInfo()
+        //meshInfos[1] = new RTMaterial.MeshInfo()
+        //{
+        //    NodeIndex = 0,
+        //    Transform = tr2,
+        //    Material = new RTMaterial.Material()
+        //    {
+        //        Color = new Vector3(1.0f, 0.0f, 0.7843f),
+        //        EmissionStrength = 0.0f,
+        //        Smoothness = 0.8f,
+        //        Metallic = 0.5f
+        //    }
+        //};
+
+        RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[bvhMesh.Vertices.Length];
+        for (int i = 0; i < bvhMesh.Vertices.Length; i++)
         {
-            StartIndex = 0,
-            IndexCount = indices.Length,
-            Transform = tr2,
-            Material = new RTMaterial.Material()
-            {
-                Color = new Vector3(1.0f, 0.0f, 0.7843f),
-                EmissionStrength = 0.0f,
-                Smoothness = 0.8f,
-                Metallic = 0.5f
-            }
-        };
+            vertices[i].Position = bvhMesh.Vertices[i].Position;
+            vertices[i].Normal = bvhMesh.Vertices[i].Normal;
+        }
 
         _vertices = new SSBO<RTMaterial.Vertex>(vertices);
-        _indices = new SSBO<uint>(indices);
+        _indices = new SSBO<uint>(bvhMesh.Indices.ToArray());
         _meshes = new SSBO<RTMaterial.MeshInfo>(meshInfos);
+        _nodes = new SSBO<BVHMesh.BVHNode>(bvhMesh.Nodes.ToArray());
 
         _material = new RTMaterial(Entity.World.CurrentCamera, 
-            _spheres, _vertices, _indices, _meshes);
+            _spheres, _vertices, _indices, _meshes, _nodes);
         _fullscreenMat = new FullscreenMaterial();
 
         Game.Instance.Renderer.PostRenderCallback += PostRenderCallback;
@@ -162,6 +168,7 @@ public class RTRendererComponent : Component, IUpdatable
         _vertices.Dispose();
         _indices.Dispose();
         _meshes.Dispose();
+        _nodes.Dispose();
         _frame1.Dispose();
         _frame2.Dispose();
 

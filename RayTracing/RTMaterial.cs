@@ -1,14 +1,15 @@
 ﻿using OpenTK.Mathematics;
-using System.Drawing.Printing;
 using System.Runtime.InteropServices;
 
 public class RTMaterial : Material
 {
-    [StructLayout(LayoutKind.Explicit, Size = 16)]
+    [StructLayout(LayoutKind.Explicit, Size = 32)]
     public struct Vertex
     {
         [FieldOffset(0)] public Vector3 Position;
         [FieldOffset(12)] private float _pad0;
+        [FieldOffset(16)] public Vector3 Normal;
+        [FieldOffset(28)] private float _pad1;
     };
 
     [StructLayout(LayoutKind.Explicit, Size = 48)]
@@ -33,16 +34,16 @@ public class RTMaterial : Material
         [FieldOffset(16)] public Material Material;
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 128)]
+    [StructLayout(LayoutKind.Explicit, Size = 192)]
     public struct MeshInfo
     {
-        [FieldOffset(0)] public int StartIndex;
-        [FieldOffset(4)] public int IndexCount;
-        [FieldOffset(8)] private Vector2 _pad0;
+        [FieldOffset(0)] public int NodeIndex;
+        [FieldOffset(4)] private Vector3 _pad0;
 
         [FieldOffset(16)] public Matrix4 Transform;
+        [FieldOffset(80)] public Matrix4 InvTransform;
 
-        [FieldOffset(80)] public Material Material;
+        [FieldOffset(144)] public Material Material;
     };
 
     private Camera _camera;
@@ -50,6 +51,7 @@ public class RTMaterial : Material
     private SSBO<Vertex> _vertices;
     private SSBO<uint> _indices;
     private SSBO<MeshInfo> _meshes;
+    private SSBO<BVHMesh.BVHNode> _nodes;
 
     public uint Frame { get; set; } = 0;
     public Texture PrevFrame { get; set; }
@@ -58,13 +60,15 @@ public class RTMaterial : Material
     public RTMaterial(Camera camera, SSBO<Sphere> spheres, 
         SSBO<Vertex> vertices, 
         SSBO<uint> indices,
-        SSBO<MeshInfo> meshes)
+        SSBO<MeshInfo> meshes,
+        SSBO<BVHMesh.BVHNode> nodes)
     {
         _camera = camera;
         _spheres = spheres;
         _vertices = vertices;
         _indices = indices;
         _meshes = meshes;
+        _nodes = nodes;
         Shader = Game.Instance.Assets.GetShader("ShaderRT");
     }
 
@@ -79,6 +83,7 @@ public class RTMaterial : Material
         _vertices.Bind(1);
         _indices.Bind(2);
         _meshes.Bind(3);
+        _nodes.Bind(4);
 
         PrevFrame.Bind(OpenTK.Graphics.OpenGL.TextureUnit.Texture0);
         Cubemap.Bind(OpenTK.Graphics.OpenGL.TextureUnit.Texture1);

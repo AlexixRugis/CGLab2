@@ -3,12 +3,13 @@
 struct Vertex
 {
     vec3 position;
+    vec3 normal;
 };
 
 struct BVHNode
 {
     vec3 posMin;
-    int primitivesCount;
+    int indicesCount;
     vec3 posMax;
     int childIndex;
 };
@@ -45,10 +46,10 @@ struct Sphere
 
 struct MeshInfo
 {
-    int startIndex;
-    int indexCount;
+    int nodeIndex;
 
     mat4 transform;
+    mat4 invTransform;
 
     Material mat;
 };
@@ -159,22 +160,22 @@ Hit hitSphere(Ray ray, vec3 center, float radius)
 
 Hit hitTriangle(
     Ray ray,
-    vec3 v0, vec3 v1, vec3 v2
+    uint i0, uint i1, uint i2
 )
 {
     Hit hit;
     hit.d = -1.0f;
 
-    vec3 e1 = v1 - v0;
-    vec3 e2 = v2 - v0;
+    vec3 e1 = _Vertices[i1].position - _Vertices[i0].position;
+    vec3 e2 = _Vertices[i2].position - _Vertices[i0].position;
     vec3 pvec = cross(ray.direction, e2);
     float det = dot(e1, pvec);
 
     if (abs(det) < 1e-8f) return hit;
 
     float invDet = 1.0f / det;
-    vec3 tvec = ray.origin - v0;
-    vec2 uv;
+    vec3 tvec = ray.origin - _Vertices[i0].position;
+    vec3 uv;
     uv.x = dot(tvec, pvec) * invDet;
     if (uv.x < 0.0f || uv.x > 1.0f) return hit;
 
@@ -182,9 +183,11 @@ Hit hitTriangle(
     uv.y = dot(ray.direction, qvec) * invDet;
     if (uv.y < 0.0f || uv.x + uv.y > 1.0f) return hit;
 
+    uv.z = 1.0f - uv.x - uv.y;
+
     hit.d = dot(e2, qvec) * invDet;
     hit.p = ray.origin + ray.direction * (hit.d - 0.01f);
-    hit.n = normalize(cross(e1, e2));
+    hit.n = normalize(_Vertices[i0].normal * uv.z + _Vertices[i1].normal * uv.x + _Vertices[i2].normal * uv.y);
 
     return hit;
 }
@@ -198,9 +201,9 @@ bool checkAABB(Ray ray, vec3 minVec, vec3 maxVec)
     vec3 tMax = max(t1, t2);
 
     float largestTMin = max(max(tMin.x, tMin.y), tMin.z);
-    float smallestTMin = min(min(tMin.x, tMin.y), tMin.z);
+    float smallestTMax = min(min(tMax.x, tMax.y), tMax.z);
 
-    return smallestTMin <= largestTMin && smallestTMin >= 0.0;
+    return largestTMin <= smallestTMax && smallestTMax >= 0.0;
 }
 
 Hit traverseBVH(Ray ray, int index)
@@ -208,7 +211,7 @@ Hit traverseBVH(Ray ray, int index)
     Hit closest;
     closest.d = 1e10f;
 
-    int stack[40];
+    int stack[64];
     int stackSize = 0;
 
     stack[stackSize++] = index;
@@ -220,7 +223,7 @@ Hit traverseBVH(Ray ray, int index)
 
         if (checkAABB(ray, _Nodes[curind].posMin, _Nodes[curind].posMax))
         {
-            if (_Nodes[curind].primitivesCount == 0)
+            if (_Nodes[curind].indicesCount == 0)
             {
                 stack[stackSize++] = _Nodes[curind].childIndex;
                 stack[stackSize++] = _Nodes[curind].childIndex + 1;
@@ -228,12 +231,12 @@ Hit traverseBVH(Ray ray, int index)
             else
             {
 
-                for (int i = _Nodes[curind].childIndex; i < _Nodes[curind].childIndex + _Nodes[curind].primitivesCount; i += 3)
+                for (int i = _Nodes[curind].childIndex; i < _Nodes[curind].childIndex + _Nodes[curind].indicesCount; i += 3)
                 {
                     Hit h = hitTriangle(ray,
-                        _Vertices[_Indices[i]].position,
-                        _Vertices[_Indices[i + 1]].position,
-                        _Vertices[_Indices[i + 2]].position);
+                        _Indices[i],
+                        _Indices[i + 1],
+                        _Indices[i + 2]);
 
                     if (h.d >= 0.0f && h.d < closest.d)
                     {
@@ -245,6 +248,8 @@ Hit traverseBVH(Ray ray, int index)
             }
         }
     }
+
+    if (closest.d == 1e10f) closest.d = -1.0f;
 
     return closest;
 }
@@ -267,16 +272,18 @@ Hit calculateCollision(Ray ray)
 
     for (int i = 0; i < _MeshesCount; i++)
     {
-        for (int j = _Meshes[i].startIndex; j < _Meshes[i].startIndex + _Meshes[i].indexCount; j+=3)
+        Ray loc;
+        loc.origin = (_Meshes[i].invTransform * vec4(ray.origin, 1.0)).xyz;
+        loc.direction = (_Meshes[i].invTransform * vec4(ray.direction, 0.0)).xyz;
+
+        Hit h = traverseBVH(loc, _Meshes[i].nodeIndex);
+        if (h.d >= 0.0f)
         {
-            (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0f)).xyz;
+            h.p = (_Meshes[i].transform * vec4(h.p, 1.0)).xyz;
+            h.n = transpose(mat3(_Meshes[i].invTransform)) * h.n;
+            h.d = length(h.p - ray.origin);
 
-            Hit h = hitTriangle(ray,
-                (_Meshes[i].transform * vec4(_Vertices[_Indices[j]].position, 1.0f)).xyz,
-                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 1]].position, 1.0f)).xyz,
-                (_Meshes[i].transform * vec4(_Vertices[_Indices[j + 2]].position, 1.0f)).xyz);
-
-            if (h.d >= 0.0f && h.d < closest.d)
+            if (h.d < closest.d)
             {
                 closest = h;
                 closest.mat = _Meshes[i].mat;

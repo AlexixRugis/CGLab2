@@ -7,7 +7,7 @@ public class BVHMesh
     public struct BVHNode
     {
         [FieldOffset(0)] public Vector3 Min;
-        [FieldOffset(12)] public int PrimitivesCount;
+        [FieldOffset(12)] public int IndicesCount;
         [FieldOffset(16)] public Vector3 Max;
         [FieldOffset(28)] public int ChildIndex;
     }
@@ -19,7 +19,7 @@ public class BVHMesh
     public List<uint> Indices { get; private set; }
     public List<BVHNode> Nodes { get; private set; }
 
-    public BVHMesh(IEnumerable<Vertex> vertices, IEnumerable<uint> indices, int maxDepth = 20, int primitivesPerNode = 16)
+    public BVHMesh(IEnumerable<Vertex> vertices, IEnumerable<uint> indices, int maxDepth = 32, int primitivesPerNode = 32)
     {
         Vertices = vertices.ToArray();
         Indices = new List<uint>();
@@ -73,7 +73,7 @@ public class BVHMesh
                 Min = minPos,
                 Max = maxPos,
                 ChildIndex = startIndex,
-                PrimitivesCount = primitivesCount
+                IndicesCount = indices.Count
             };
 
             MaxPrimitivesPerNode = Math.Max(MaxPrimitivesPerNode, primitivesCount);
@@ -170,7 +170,7 @@ public class BVHMesh
                     Min = minPos,
                     Max = maxPos,
                     ChildIndex = startIndex,
-                    PrimitivesCount = primitivesCount
+                    IndicesCount = indices.Count
                 };
 
                 MaxPrimitivesPerNode = Math.Max(MaxPrimitivesPerNode, primitivesCount);
@@ -186,7 +186,7 @@ public class BVHMesh
                 Min = minPos,
                 Max = maxPos,
                 ChildIndex = leftChild,
-                PrimitivesCount = 0
+                IndicesCount = 0
             };
 
             indices.Clear();
