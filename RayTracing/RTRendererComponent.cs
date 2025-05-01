@@ -2,6 +2,9 @@
 
 public class RTRendererComponent : Component, IUpdatable
 {
+    [EditorField] public int Bounces = 4;
+    [EditorField] public int RaysPerPixel = 2;
+
     private SSBO<RTMaterial.Sphere> _spheres;
     private SSBO<RTMaterial.Vertex> _vertices;
     private SSBO<uint> _indices;
@@ -9,7 +12,6 @@ public class RTRendererComponent : Component, IUpdatable
     private SSBO<BVHMesh.BVHNode> _nodes;
 
     private RTMaterial _material;
-    private FullscreenMaterial _fullscreenMat;
 
     private Framebuffer _frame1;
     private Framebuffer _frame2;
@@ -157,7 +159,6 @@ public class RTRendererComponent : Component, IUpdatable
 
         _material = new RTMaterial(Entity.World.CurrentCamera, 
             _spheres, _vertices, _indices, _meshes, _nodes);
-        _fullscreenMat = new FullscreenMaterial();
 
         Game.Instance.Renderer.PostRenderCallback += PostRenderCallback;
         Game.Instance.Renderer.ViewportSizeChangeCallback += ViewportSizeCallback;
@@ -179,7 +180,11 @@ public class RTRendererComponent : Component, IUpdatable
 
     public override Component Clone()
     {
-        return new RTRendererComponent();
+        return new RTRendererComponent()
+        {
+            Bounces = Bounces,
+            RaysPerPixel = RaysPerPixel
+        };
     }
 
     private void PostRenderCallback()
@@ -221,5 +226,8 @@ public class RTRendererComponent : Component, IUpdatable
             _material.Frame++;
         }
 
+
+        _material.Bounces = Bounces;
+        _material.RaysPerPixel = RaysPerPixel;
     }
 }

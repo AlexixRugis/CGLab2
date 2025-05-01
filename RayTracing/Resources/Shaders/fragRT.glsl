@@ -92,6 +92,8 @@ uniform samplerCube _Skybox;
 uniform mat4 _CameraToWorld;
 uniform mat4 _CameraInverseProjection;
 uniform vec2 _ScreenSize;
+uniform int _Bounces;
+uniform int _RaysPerPixel;
 uniform uint _Frame;
 uniform int _SpheresCount;
 uniform int _MeshesCount;
@@ -315,7 +317,7 @@ vec3 traceRay(Ray ray, inout uint state)
     vec3 incomingLight = vec3(0.0f);
     vec3 color = vec3(1.0f);
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < _Bounces; i++)
     {
         Hit hit = calculateCollision(ray);
         if (hit.d < 1e9f)
@@ -362,12 +364,12 @@ void main()
     Ray ray = createCameraRay(uv);
     
     vec3 light = vec3(0.0f);
-    for (int rayIndex = 0; rayIndex < 2; rayIndex++)
+    for (int rayIndex = 0; rayIndex < _RaysPerPixel; rayIndex++)
     {
         state += 1456;
         light += traceRay(ray, state);
     }
-    light = light / 2.0f;
+    light = light / int(_RaysPerPixel);
 
     vec4 previous = texture(prevFrame, texCoords);
     FragColor = mix(previous, vec4(light, 1.0f), 1.0f / float(_Frame + 1));

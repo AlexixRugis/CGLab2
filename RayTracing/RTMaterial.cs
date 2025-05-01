@@ -54,6 +54,8 @@ public class RTMaterial : Material
     private SSBO<BVHMesh.BVHNode> _nodes;
 
     public uint Frame { get; set; } = 0;
+    public int Bounces { get; set; } = 4;
+    public int RaysPerPixel { get; set; } = 2;
     public Texture PrevFrame { get; set; }
     public CubemapTexture Cubemap { get; set; }
     
@@ -92,6 +94,8 @@ public class RTMaterial : Material
         Shader.SetInt("_SpheresCount", _spheres.Count);
         Shader.SetInt("_MeshesCount", _meshes.Count);
         Shader.SetUInt("_Frame", Frame);
+        Shader.SetInt("_Bounces", Bounces);
+        Shader.SetInt("_RaysPerPixel", RaysPerPixel);
         Shader.SetVector2("_ScreenSize", screenSize);
         Shader.SetMatrix("_CameraToWorld", ref invTransform);
         Shader.SetMatrix("_CameraInverseProjection", ref invProj);

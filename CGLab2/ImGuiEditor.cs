@@ -72,7 +72,7 @@ public class ImGuiEditor
 
             if (ImGui.SmallButton("X")) _selected = null;
             ImGui.Text($"Id: {selected.Id}");
-            ImGui.Text($"Id: {selected.Name}");
+            ImGui.Text($"Name: {selected.Name}");
             ImGui.Separator();
             ImGui.Text("Transform");
 
