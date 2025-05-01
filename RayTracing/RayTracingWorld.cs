@@ -17,6 +17,8 @@ public class RayTracingWorld : World
         "Resources/Textures/Skybox/Epic_GloriousPink_Cam_5_Down-Y.png",
         "Resources/Textures/Skybox/Epic_GloriousPink_Cam_0_Front+Z.png",
         "Resources/Textures/Skybox/Epic_GloriousPink_Cam_1_Back-Z.png",}, true);
+
+        Assets.LoadEntity("Teapot", "Resources/Models/teapot.obj", 0.01f, true);
     }
 
     public override void UnloadResources()
@@ -34,7 +36,6 @@ public class RayTracingWorld : World
         cam.NearPlane = 0.1f;
         cam.FarPlane = 100f;
         cam.ClearColor = Color.White;
-        cam.Target = new Framebuffer(1280, 720);
         cam.Skybox = new CubemapMaterial(Assets.GetCubemap("Skybox"));
         cam.IsOrthograthic = false;
         cam.ClearColor = Color.SkyBlue;

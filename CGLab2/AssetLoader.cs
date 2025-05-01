@@ -59,11 +59,11 @@ public class AssetLoader
         throw new InvalidOperationException();
     }
 
-    public void LoadMesh(string name, Vertex[] vertices, uint[] indices, Mesh.SubMeshInfo[] subMeshes)
+    public void LoadMesh(string name, Vertex[] vertices, uint[] indices, Mesh.SubMeshInfo[] subMeshes, bool keepOnCpu = false)
     {
         if (_meshes.ContainsKey(name)) throw new ArgumentException($"Mesh {name} already exists.");
 
-        Mesh mesh = new Mesh(vertices, indices, subMeshes);
+        Mesh mesh = new Mesh(vertices, indices, subMeshes, keepOnCpu);
         _meshes.Add(name, mesh);
     }
 
@@ -73,14 +73,14 @@ public class AssetLoader
         throw new InvalidOperationException();
     }
 
-    public void LoadEntity(string name, string path, float scale = 0.01f)
+    public void LoadEntity(string name, string path, float scale = 0.01f, bool keepMeshesOnCpu = false)
     {
         if (_entities.ContainsKey(name)) throw new ArgumentException($"Entity {name} already exists.");
 
         string fullPath = Path.Combine(Directory.GetCurrentDirectory(), path);
         AssimpLoader loader = new AssimpLoader(this);
 
-        Entity e = loader.Load(fullPath, "", scale);
+        Entity e = loader.Load(fullPath, "", scale, keepMeshesOnCpu);
         _entities.Add(name, e);
     }
 

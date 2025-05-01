@@ -9,31 +9,31 @@ public class AssimpLoader
         _assetLoader = assets;
     }
 
-    public Entity Load(string resourcePath, string texturesDir, float scale = 0.01f)
+    public Entity Load(string resourcePath, string texturesDir, float scale = 0.01f, bool keepMeshesOnCpu = false)
     {
         PostProcessSteps steps = PostProcessSteps.JoinIdenticalVertices
             | PostProcessSteps.Triangulate
             | PostProcessSteps.FixInFacingNormals
             | PostProcessSteps.GenerateNormals
             | PostProcessSteps.GenerateUVCoords;
-        return Load(resourcePath, texturesDir, steps, scale);
+        return Load(resourcePath, texturesDir, steps, scale, keepMeshesOnCpu);
     }
 
-    public Entity Load(string resourcePath, string texturesDir, PostProcessSteps postProcessSteps, float scale = 0.01f)
+    public Entity Load(string resourcePath, string texturesDir, PostProcessSteps postProcessSteps, float scale = 0.01f, bool keepMeshesOnCpu = false)
     {
         var importer = new AssimpContext();
         var scene = importer.ImportFile(resourcePath, postProcessSteps);
 
-        Entity e = ProcessNode(scene.RootNode, scene);
+        Entity e = ProcessNode(scene.RootNode, scene, keepMeshesOnCpu);
         e.Transform.LocalScale *= scale;
         return e;
     }
 
-    private Entity ProcessNode(Assimp.Node node, Assimp.Scene scene)
+    private Entity ProcessNode(Assimp.Node node, Assimp.Scene scene, bool keepMeshesOnCpu = false)
     {
         Entity e = new Entity(null, node.Name);
         if (node.MeshCount > 0) {
-            e.AddComponent(ProcessMeshes(scene, node.MeshIndices));
+            e.AddComponent(ProcessMeshes(scene, node.MeshIndices, keepMeshesOnCpu));
         }
 
         Matrix4x4 tr = node.Transform;
@@ -51,14 +51,14 @@ public class AssimpLoader
 
         foreach (var c in node.Children)
         {
-            Entity ce = ProcessNode(c, scene);
+            Entity ce = ProcessNode(c, scene, keepMeshesOnCpu);
             ce.Transform.SetParent(e.Transform);
         }
 
         return e;
     }
 
-    private StaticMeshComponent ProcessMeshes(Assimp.Scene scene, List<int> meshIndices)
+    private StaticMeshComponent ProcessMeshes(Assimp.Scene scene, List<int> meshIndices, bool keepOnCpu = false)
     {
         List<Vertex> vertices = new List<Vertex>();
         List<uint> indices = new List<uint>();
@@ -109,7 +109,7 @@ public class AssimpLoader
         }
 
         string meshAssetName = $"Mesh_{Guid.NewGuid()}";
-        _assetLoader.LoadMesh(meshAssetName, vertices.ToArray(), indices.ToArray(), subMeshes.ToArray());
+        _assetLoader.LoadMesh(meshAssetName, vertices.ToArray(), indices.ToArray(), subMeshes.ToArray(), keepOnCpu);
 
         return new StaticMeshComponent()
         {

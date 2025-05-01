@@ -98,6 +98,13 @@ public class RTRendererComponent : Component, IUpdatable
 
         _spheres = new SSBO<RTMaterial.Sphere>(spheres);
 
+
+        Mesh teapotMesh = Game.Instance.Assets.GetEntity("Teapot")
+            .GetChild("Base").GetComponent<StaticMeshComponent>().Mesh;
+
+        BVHMesh bvhMesh = new BVHMesh(teapotMesh.Vertices, teapotMesh.Indices);
+
+
         RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[Primitives.CubeVertices.Length];
         for (int i = 0; i <  Primitives.CubeVertices.Length; i++)
             vertices[i].Position = Primitives.CubeVertices[i].Position;

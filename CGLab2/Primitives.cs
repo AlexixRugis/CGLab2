@@ -74,9 +74,9 @@ public static class Primitives
     public static void Load(AssetLoader assets)
     {
         assets.LoadMesh("MeshQuad", QuadVertices, QuadIndices,
-            new Mesh.SubMeshInfo[] { new() { Index = 0, Size = 6 } });
+            new Mesh.SubMeshInfo[] { new() { Index = 0, Size = 6 } }, true);
         assets.LoadMesh("MeshCube", CubeVertices, CubeIndices,
-            new Mesh.SubMeshInfo[] { new() { Index = 0, Size = 36 } });
+            new Mesh.SubMeshInfo[] { new() { Index = 0, Size = 36 } }, true);
 
         Entity quadEntity = new Entity(null, "Quad");
         quadEntity.AddComponent(new StaticMeshComponent() { 
@@ -97,7 +97,7 @@ public static class Primitives
         uint[] sphereI;
         GenerateSphere(0.5f, 16, 32, out sphereV, out sphereI);
         assets.LoadMesh("MeshSphere", sphereV, sphereI,
-            new Mesh.SubMeshInfo[] { new() { Index = 0, Size = sphereI.Length } });
+            new Mesh.SubMeshInfo[] { new() { Index = 0, Size = sphereI.Length } }, true);
 
         Entity sphereEntity = new Entity(null, "Sphere");
         sphereEntity.AddComponent(new StaticMeshComponent()

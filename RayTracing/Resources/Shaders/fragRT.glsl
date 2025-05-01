@@ -5,6 +5,14 @@ struct Vertex
     vec3 position;
 };
 
+struct BVHNode
+{
+    vec3 posMin;
+    int primitivesCount;
+    vec3 posMax;
+    int childIndex;
+};
+
 struct Ray
 {
     vec3 origin;
@@ -71,6 +79,11 @@ layout(std430, binding = 2) buffer IndexBuffer
 layout(std430, binding = 3) buffer MeshBuffer
 {
     MeshInfo _Meshes[];
+};
+
+layout(std430, binding = 4) buffer BVHBuffer
+{
+    BVHNode _Nodes[];
 };
 
 uniform sampler2D prevFrame;
@@ -174,6 +187,66 @@ Hit hitTriangle(
     hit.n = normalize(cross(e1, e2));
 
     return hit;
+}
+
+bool checkAABB(Ray ray, vec3 minVec, vec3 maxVec)
+{
+    vec3 t1 = (minVec - ray.origin) / ray.direction;
+    vec3 t2 = (maxVec - ray.origin) / ray.direction;
+
+    vec3 tMin = min(t1, t2);
+    vec3 tMax = max(t1, t2);
+
+    float largestTMin = max(max(tMin.x, tMin.y), tMin.z);
+    float smallestTMin = min(min(tMin.x, tMin.y), tMin.z);
+
+    return smallestTMin <= largestTMin && smallestTMin >= 0.0;
+}
+
+Hit traverseBVH(Ray ray, int index)
+{
+    Hit closest;
+    closest.d = 1e10f;
+
+    int stack[40];
+    int stackSize = 0;
+
+    stack[stackSize++] = index;
+
+    while (stackSize > 0)
+    {
+        stackSize--;
+        int curind = stack[stackSize];
+
+        if (checkAABB(ray, _Nodes[curind].posMin, _Nodes[curind].posMax))
+        {
+            if (_Nodes[curind].primitivesCount == 0)
+            {
+                stack[stackSize++] = _Nodes[curind].childIndex;
+                stack[stackSize++] = _Nodes[curind].childIndex + 1;
+            }
+            else
+            {
+
+                for (int i = _Nodes[curind].childIndex; i < _Nodes[curind].childIndex + _Nodes[curind].primitivesCount; i += 3)
+                {
+                    Hit h = hitTriangle(ray,
+                        _Vertices[_Indices[i]].position,
+                        _Vertices[_Indices[i + 1]].position,
+                        _Vertices[_Indices[i + 2]].position);
+
+                    if (h.d >= 0.0f && h.d < closest.d)
+                    {
+                        closest = h;
+                        closest.mat = _Meshes[i].mat;
+                    }
+                }
+
+            }
+        }
+    }
+
+    return closest;
 }
 
 Hit calculateCollision(Ray ray)

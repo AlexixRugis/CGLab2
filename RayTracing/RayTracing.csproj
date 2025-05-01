@@ -12,6 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Resources\Models\teapot.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Shaders\fragRT.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
