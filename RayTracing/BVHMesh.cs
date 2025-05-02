@@ -13,19 +13,17 @@ public class BVHMesh
     }
 
     public int MaxDepth { get; private set; }
-    public int PrimitivesPerNode { get; private set; }
     public int MaxPrimitivesPerNode { get; private set; } 
     public Vertex[] Vertices { get; private set; }
     public List<uint> Indices { get; private set; }
     public List<BVHNode> Nodes { get; private set; }
 
-    public BVHMesh(IEnumerable<Vertex> vertices, IEnumerable<uint> indices, int maxDepth = 32, int primitivesPerNode = 32)
+    public BVHMesh(IEnumerable<Vertex> vertices, IEnumerable<uint> indices, int maxDepth = 32)
     {
         Vertices = vertices.ToArray();
         Indices = new List<uint>();
         Nodes = new List<BVHNode>();
         MaxDepth = maxDepth;
-        PrimitivesPerNode = primitivesPerNode;
         MaxPrimitivesPerNode = 0;
 
         List<uint> indList = new List<uint>(indices);
@@ -61,7 +59,7 @@ public class BVHMesh
 
         int primitivesCount = indices.Count / 3;
 
-        if (primitivesCount <= PrimitivesPerNode || depth >= MaxDepth)
+        if (depth >= MaxDepth)
         {
             // node is a leaf
             

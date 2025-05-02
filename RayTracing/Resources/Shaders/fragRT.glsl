@@ -47,6 +47,8 @@ struct MeshInfo
 {
     int nodeIndex;
     uint matIndex;
+    uint indexOffset;
+    uint vertexOffset;
 
     mat4 transform;
     mat4 invTransform;
@@ -212,12 +214,12 @@ bool checkAABB(Ray ray, vec3 minVec, vec3 maxVec, inout float largestTMin)
     return largestTMin <= smallestTMax && smallestTMax >= 0.0;
 }
 
-Hit traverseBVH(Ray ray, int index)
+Hit traverseBVH(Ray ray, int index, uint vertexOffset, uint indexOffset)
 {
     Hit closest;
     closest.d = 1e10f;
 
-    int stack[32];
+    int stack[64];
     int stackSize = 0;
 
     stack[stackSize++] = index;
@@ -232,18 +234,18 @@ Hit traverseBVH(Ray ray, int index)
         {
             if (cur.indicesCount == 0)
             {
-                vec3 c1 = (_Nodes[cur.childIndex].posMin + _Nodes[cur.childIndex].posMax) * 0.5f;
-                vec3 c2 = (_Nodes[cur.childIndex].posMin + _Nodes[cur.childIndex + 1].posMax) * 0.5f;
+                vec3 c1 = (_Nodes[index + cur.childIndex].posMin + _Nodes[index + cur.childIndex].posMax) * 0.5f;
+                vec3 c2 = (_Nodes[index + cur.childIndex].posMin + _Nodes[index + cur.childIndex + 1].posMax) * 0.5f;
 
                 if (dot(ray.origin, c1) <= dot(ray.origin, c2))
                 {
-                    stack[stackSize++] = cur.childIndex;
-                    stack[stackSize++] = cur.childIndex + 1;
+                    stack[stackSize++] = index + cur.childIndex;
+                    stack[stackSize++] = index + cur.childIndex + 1;
                 }
                 else
                 {
-                    stack[stackSize++] = cur.childIndex + 1;
-                    stack[stackSize++] = cur.childIndex;
+                    stack[stackSize++] = index + cur.childIndex + 1;
+                    stack[stackSize++] = index + cur.childIndex;
                 }
             }
             else
@@ -251,9 +253,9 @@ Hit traverseBVH(Ray ray, int index)
                 for (int i = cur.childIndex; i < cur.childIndex + cur.indicesCount; i += 3)
                 {
                     Hit h = hitTriangle(ray,
-                        _Indices[i],
-                        _Indices[i + 1],
-                        _Indices[i + 2]);
+                        vertexOffset + _Indices[indexOffset + i],
+                        vertexOffset + _Indices[indexOffset + i + 1],
+                        vertexOffset + _Indices[indexOffset + i + 2]);
 
                     if (h.d >= 0.0f && h.d < closest.d)
                     {
@@ -293,11 +295,11 @@ Hit calculateCollision(Ray ray)
         loc.origin = (_Meshes[i].invTransform * vec4(ray.origin, 1.0)).xyz;
         loc.direction = (_Meshes[i].invTransform * vec4(ray.direction, 0.0)).xyz;
 
-        Hit h = traverseBVH(loc, _Meshes[i].nodeIndex);
+        Hit h = traverseBVH(loc, _Meshes[i].nodeIndex, _Meshes[i].vertexOffset, _Meshes[i].indexOffset);
         if (h.d >= 0.0f)
         {
             h.p = (_Meshes[i].transform * vec4(h.p, 1.0)).xyz;
-            h.n = transpose(mat3(_Meshes[i].invTransform)) * h.n;
+            h.n = normalize(transpose(mat3(_Meshes[i].invTransform)) * h.n);
             h.d = length(h.p - ray.origin);
 
             if (h.d < closest.d)

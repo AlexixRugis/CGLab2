@@ -36,7 +36,8 @@ public class RTMaterial : Material
     {
         [FieldOffset(0)] public int NodeIndex;
         [FieldOffset(4)] public uint MaterialIndex;
-        [FieldOffset(4)] private Vector2 _pad0;
+        [FieldOffset(8)] public uint IndexOffset;
+        [FieldOffset(12)] public uint VertexOffset;
 
         [FieldOffset(16)] public Matrix4 Transform;
         [FieldOffset(80)] public Matrix4 InvTransform;

@@ -107,9 +107,22 @@ public class RTRendererComponent : Component, IUpdatable
         Mesh teapotMesh = Game.Instance.Assets.GetEntity("Teapot")
             .GetChild("teapot").GetComponent<StaticMeshComponent>().Mesh;
 
-        BVHMesh bvhMesh = new BVHMesh(teapotMesh.Vertices, teapotMesh.Indices, 20, 20);
+        BVHMesh bvhMesh = new BVHMesh(teapotMesh.Vertices, teapotMesh.Indices, 32);
+        BVHMesh bvhMesh2 = new BVHMesh(Primitives.CubeVertices, Primitives.CubeIndices, 4);
 
-        RTMaterial.MeshInfo[] meshInfos = new RTMaterial.MeshInfo[2];
+        List<Vertex> allVertices = new List<Vertex>();
+        allVertices.AddRange(bvhMesh.Vertices);
+        allVertices.AddRange(bvhMesh2.Vertices);
+
+        List<uint> allIndices = new List<uint>();
+        allIndices.AddRange(bvhMesh.Indices);
+        allIndices.AddRange(bvhMesh2.Indices);
+
+        List<BVHMesh.BVHNode> allNodes = new List<BVHMesh.BVHNode>();
+        allNodes.AddRange(bvhMesh.Nodes);
+        allNodes.AddRange(bvhMesh2.Nodes);
+
+        RTMaterial.MeshInfo[] meshInfos = new RTMaterial.MeshInfo[3];
 
         Matrix4 tr1 =
             Matrix4.CreateScale(0.03f) *
@@ -148,17 +161,38 @@ public class RTRendererComponent : Component, IUpdatable
             MaterialIndex = (uint)(mats.Count - 1)
         };
 
-        RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[bvhMesh.Vertices.Length];
-        for (int i = 0; i < bvhMesh.Vertices.Length; i++)
+        Matrix4 tr3 =
+            Matrix4.CreateScale(4.0f) *
+            Matrix4.CreateFromAxisAngle(Vector3.UnitY, 1.0f) *
+            Matrix4.CreateTranslation(-2.0f, 7.0f, -5.0f);
+
+        mats.Add(new RTMaterial.Material()
         {
-            vertices[i].Position = bvhMesh.Vertices[i].Position;
-            vertices[i].Normal = bvhMesh.Vertices[i].Normal;
+            Color = new Vector3(1.0f, 1.0f, 1.0f),
+            Smoothness = 0.9f,
+            Metallic = 0.5f
+        });
+        meshInfos[2] = new RTMaterial.MeshInfo()
+        {
+            NodeIndex = bvhMesh.Nodes.Count,
+            IndexOffset = (uint)bvhMesh.Indices.Count,
+            VertexOffset = (uint)bvhMesh.Vertices.Length,
+            Transform = tr3,
+            InvTransform = Matrix4.Invert(tr3),
+            MaterialIndex = (uint)(mats.Count - 1)
+        };
+
+        RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[allVertices.Count];
+        for (int i = 0; i < allVertices.Count; i++)
+        {
+            vertices[i].Position = allVertices[i].Position;
+            vertices[i].Normal = allVertices[i].Normal;
         }
 
         _vertices = new SSBO<RTMaterial.Vertex>(vertices);
-        _indices = new SSBO<uint>(bvhMesh.Indices.ToArray());
+        _indices = new SSBO<uint>(allIndices.ToArray());
         _meshes = new SSBO<RTMaterial.MeshInfo>(meshInfos);
-        _nodes = new SSBO<BVHMesh.BVHNode>(bvhMesh.Nodes.ToArray());
+        _nodes = new SSBO<BVHMesh.BVHNode>(allNodes.ToArray());
         _materials = new SSBO<RTMaterial.Material>(mats.ToArray());
 
         _material = new RTMaterial(Entity.World.CurrentCamera, 
