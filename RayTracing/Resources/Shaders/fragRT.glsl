@@ -193,7 +193,7 @@ Hit hitTriangle(
     uv.z = 1.0f - uv.x - uv.y;
 
     hit.d = dot(e2, qvec) * invDet;
-    hit.p = ray.origin + ray.direction * (hit.d - 0.01f);
+    hit.p = ray.origin + ray.direction * hit.d;
     hit.n = normalize(_Vertices[i0].normal * uv.z + _Vertices[i1].normal * uv.x + _Vertices[i2].normal * uv.y);
 
     return hit;
@@ -263,7 +263,6 @@ Hit traverseBVH(Ray ray, int index, uint vertexOffset, uint indexOffset)
                         closest.matIndex = _Meshes[i].matIndex;
                     }
                 }
-
             }
         }
     }
@@ -328,8 +327,6 @@ vec3 traceRay(Ray ray, inout uint state)
         Hit hit = calculateCollision(ray);
         if (hit.d < 1e9f)
         {
-            ray.origin = hit.p;
-
             vec3 dirDiffuse = normalize(hit.n + randomDirection(state));
             vec3 dirSpecular = reflect(ray.direction, hit.n);
 
@@ -345,6 +342,7 @@ vec3 traceRay(Ray ray, inout uint state)
 
             float isSpecular = float(randomFloat(state) < reflectProb);
             ray.direction = mix(dirDiffuse, dirSpecular, mat.smoothness * isSpecular);
+            ray.origin = hit.p + ray.direction * 0.01f;
             color *= mix(vec3(1.0f), mat.color, max(1.0f - isSpecular, mat.metallic));
             
         } else

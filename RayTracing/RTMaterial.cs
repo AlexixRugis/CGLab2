@@ -48,7 +48,7 @@ public class RTMaterial : Material
     private SSBO<Vertex> _vertices;
     private SSBO<uint> _indices;
     private SSBO<MeshInfo> _meshes;
-    private SSBO<BVHMesh.BVHNode> _nodes;
+    private SSBO<BVHNode> _nodes;
     private SSBO<Material> _materials;
 
     public uint Frame { get; set; } = 0;
@@ -61,7 +61,7 @@ public class RTMaterial : Material
         SSBO<Vertex> vertices, 
         SSBO<uint> indices,
         SSBO<MeshInfo> meshes,
-        SSBO<BVHMesh.BVHNode> nodes,
+        SSBO<BVHNode> nodes,
         SSBO<Material> materials)
     {
         _camera = camera;

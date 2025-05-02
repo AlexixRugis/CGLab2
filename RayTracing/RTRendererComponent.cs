@@ -9,7 +9,7 @@ public class RTRendererComponent : Component, IUpdatable
     private SSBO<RTMaterial.Vertex> _vertices;
     private SSBO<uint> _indices;
     private SSBO<RTMaterial.MeshInfo> _meshes;
-    private SSBO<BVHMesh.BVHNode> _nodes;
+    private SSBO<BVHNode> _nodes;
     private SSBO<RTMaterial.Material> _materials;
 
     private RTMaterial _material;
@@ -118,7 +118,7 @@ public class RTRendererComponent : Component, IUpdatable
         allIndices.AddRange(bvhMesh.Indices);
         allIndices.AddRange(bvhMesh2.Indices);
 
-        List<BVHMesh.BVHNode> allNodes = new List<BVHMesh.BVHNode>();
+        List<BVHNode> allNodes = new List<BVHNode>();
         allNodes.AddRange(bvhMesh.Nodes);
         allNodes.AddRange(bvhMesh2.Nodes);
 
@@ -192,7 +192,7 @@ public class RTRendererComponent : Component, IUpdatable
         _vertices = new SSBO<RTMaterial.Vertex>(vertices);
         _indices = new SSBO<uint>(allIndices.ToArray());
         _meshes = new SSBO<RTMaterial.MeshInfo>(meshInfos);
-        _nodes = new SSBO<BVHMesh.BVHNode>(allNodes.ToArray());
+        _nodes = new SSBO<BVHNode>(allNodes.ToArray());
         _materials = new SSBO<RTMaterial.Material>(mats.ToArray());
 
         _material = new RTMaterial(Entity.World.CurrentCamera, 
