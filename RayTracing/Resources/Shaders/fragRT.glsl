@@ -23,35 +23,33 @@ struct Ray
 struct Material
 {
     vec3 color;
-    vec3 emissionColor;
-    float emissionStrength;
     float smoothness;
+    vec3 emissionColor;
     float metallic;
 };
 
 struct Hit
 {
-    float d;
     vec3 p;
+    float d;
     vec3 n;
-    Material mat;
+    uint matIndex;
 };
 
 struct Sphere
 {
     vec3 position;
     float radius;
-    Material mat;
+    uint matIndex;
 };
 
 struct MeshInfo
 {
     int nodeIndex;
+    uint matIndex;
 
     mat4 transform;
     mat4 invTransform;
-
-    Material mat;
 };
 
 Ray createRay(vec3 origin, vec3 direction)
@@ -85,6 +83,11 @@ layout(std430, binding = 3) buffer MeshBuffer
 layout(std430, binding = 4) buffer BVHBuffer
 {
     BVHNode _Nodes[];
+};
+
+layout(std430, binding = 5) buffer MaterialBuffer
+{
+    Material _Materials[];
 };
 
 uniform sampler2D prevFrame;
@@ -196,8 +199,9 @@ Hit hitTriangle(
 
 bool checkAABB(Ray ray, vec3 minVec, vec3 maxVec, inout float largestTMin)
 {
-    vec3 t1 = (minVec - ray.origin) / ray.direction;
-    vec3 t2 = (maxVec - ray.origin) / ray.direction;
+    vec3 invDir = 1.0 / ray.direction;
+    vec3 t1 = (minVec - ray.origin) * invDir;
+    vec3 t2 = (maxVec - ray.origin) * invDir;
 
     vec3 tMin = min(t1, t2);
     vec3 tMax = max(t1, t2);
@@ -254,7 +258,7 @@ Hit traverseBVH(Ray ray, int index)
                     if (h.d >= 0.0f && h.d < closest.d)
                     {
                         closest = h;
-                        closest.mat = _Meshes[i].mat;
+                        closest.matIndex = _Meshes[i].matIndex;
                     }
                 }
 
@@ -279,7 +283,7 @@ Hit calculateCollision(Ray ray)
         if (h.d >= 0.0f && h.d < closest.d)
         {
             closest = h;
-            closest.mat = _Spheres[i].mat;
+            closest.matIndex = _Spheres[i].matIndex;
         }
     }
 
@@ -299,7 +303,7 @@ Hit calculateCollision(Ray ray)
             if (h.d < closest.d)
             {
                 closest = h;
-                closest.mat = _Meshes[i].mat;
+                closest.matIndex = _Meshes[i].matIndex;
             }
         }
     }
@@ -309,7 +313,7 @@ Hit calculateCollision(Ray ray)
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
 }
 
 vec3 traceRay(Ray ray, inout uint state)
@@ -327,18 +331,19 @@ vec3 traceRay(Ray ray, inout uint state)
             vec3 dirDiffuse = normalize(hit.n + randomDirection(state));
             vec3 dirSpecular = reflect(ray.direction, hit.n);
 
-            vec3 emittedLight = hit.mat.emissionColor * hit.mat.emissionStrength;
-            incomingLight += emittedLight * color;
+            Material mat = _Materials[hit.matIndex];
 
-            float cosTheta = max(dot(hit.n, -ray.direction), 0.0);
+            incomingLight += mat.emissionColor * color;
 
-            vec3 F0 = mix(vec3(0.04), hit.mat.color, hit.mat.metallic);
+            float cosTheta = max(dot(hit.n, -ray.direction), 0.0f);
+
+            vec3 F0 = mix(vec3(0.04), mat.color, mat.metallic);
             vec3 fresnel = fresnelSchlick(cosTheta, F0);
             float reflectProb = dot(fresnel, vec3(0.2126f, 0.7152f, 0.0722f));
 
             float isSpecular = float(randomFloat(state) < reflectProb);
-            ray.direction = mix(dirDiffuse, dirSpecular, hit.mat.smoothness * isSpecular);
-            color *= mix(vec3(1.0f), hit.mat.color, max(1.0f - isSpecular, hit.mat.metallic));
+            ray.direction = mix(dirDiffuse, dirSpecular, mat.smoothness * isSpecular);
+            color *= mix(vec3(1.0f), mat.color, max(1.0f - isSpecular, mat.metallic));
             
         } else
         {

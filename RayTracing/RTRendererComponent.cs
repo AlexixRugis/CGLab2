@@ -10,6 +10,7 @@ public class RTRendererComponent : Component, IUpdatable
     private SSBO<uint> _indices;
     private SSBO<RTMaterial.MeshInfo> _meshes;
     private SSBO<BVHMesh.BVHNode> _nodes;
+    private SSBO<RTMaterial.Material> _materials;
 
     private RTMaterial _material;
 
@@ -25,75 +26,77 @@ public class RTRendererComponent : Component, IUpdatable
         _frame1 = new Framebuffer(clientSize.X, clientSize.Y);
         _frame2 = new Framebuffer(clientSize.X, clientSize.Y);
 
+        List<RTMaterial.Material> mats = new List<RTMaterial.Material>();
+
         RTMaterial.Sphere[] spheres = new RTMaterial.Sphere[40];
+        mats.Add(new RTMaterial.Material()
+        {
+            Color = new Vector3(1.0f, 1.0f, 1.0f),
+            Smoothness = 0.8f,
+            Metallic = 0.2f
+        });
         spheres[0] = new RTMaterial.Sphere()
         {
             Position = new Vector3(1.0f, 1.0f, 0.0f),
             Radius = 1.0f,
-            Material = new RTMaterial.Material()
-            {
-                Color = new Vector3(1.0f, 1.0f, 1.0f),
-                EmissionStrength = 0.0f,
-                Smoothness = 0.8f,
-                Metallic = 0.2f
-            }
+            MaterialIndex = (uint)(mats.Count - 1)
         };
 
+        mats.Add(new RTMaterial.Material()
+        {
+            Color = new Vector3(1.0f, 0.0f, 1.0f),
+            Smoothness = 0.5f,
+            Metallic = 0.1f
+        });
         spheres[1] = new RTMaterial.Sphere()
         {
             Position = new Vector3(3.0f, 0.0f, 0.0f),
             Radius = 1.0f,
-            Material = new RTMaterial.Material()
-            {
-                Color = new Vector3(1.0f, 0.0f, 1.0f),
-                EmissionStrength = 0.0f,
-                Smoothness = 0.5f,
-                Metallic = 0.1f
-            }
+            MaterialIndex = (uint)(mats.Count - 1)
         };
 
+        mats.Add(new RTMaterial.Material()
+        {
+            Color = new Vector3(0.0f, 0.0f, 0.0f),
+            EmissionColor = new Vector3(3.0f, 3.0f, 3.0f),
+            Smoothness = 0.0f,
+            Metallic = 0.1f
+        });
         spheres[2] = new RTMaterial.Sphere()
         {
             Position = new Vector3(-6.0f, 10.0f, 5.0f),
             Radius = 4.0f,
-            Material = new RTMaterial.Material()
-            {
-                Color = new Vector3(0.0f, 0.0f, 0.0f),
-                EmissionColor = new Vector3(1.0f, 1.0f, 1.0f),
-                EmissionStrength = 2.0f,
-                Smoothness = 0.0f,
-                Metallic = 0.1f
-            }
+            MaterialIndex = (uint)(mats.Count - 1)
         };
 
+        mats.Add(new RTMaterial.Material()
+        {
+            Color = new Vector3(0.0f, 1.0f, 1.0f),
+            Smoothness = 0.0f,
+            Metallic = 0.1f
+        });
         spheres[3] = new RTMaterial.Sphere()
         {
             Position = new Vector3(3.0f, -10.0f, 0.0f),
             Radius = 10.0f,
-            Material = new RTMaterial.Material()
-            {
-                Color = new Vector3(0.0f, 1.0f, 1.0f),
-                EmissionStrength = 0.0f,
-                Smoothness = 0.0f,
-                Metallic = 0.1f
-            }
+            MaterialIndex = (uint)(mats.Count - 1)
         };
 
         for (int i = 0; i < 6; i++)
         {
             for (int j = 0; j < 6; j++)
             {
+                mats.Add(new RTMaterial.Material()
+                {
+                    Color = new Vector3(0.839f, 0.917f, 1.0f),
+                    Smoothness = 0.2f * i,
+                    Metallic = 0.2f * j
+                });
                 spheres[4 + 6 * i + j] = new RTMaterial.Sphere()
                 {
                     Position = new Vector3(i * 1.0f, 3.0f + j * 1.0f, 0.0f),
                     Radius = 0.5f,
-                    Material = new RTMaterial.Material()
-                    {
-                        Color = new Vector3(0.839f, 0.917f, 1.0f),
-                        EmissionStrength = 0.0f,
-                        Smoothness = 0.2f * i,
-                        Metallic = 0.2f * j
-                    }
+                    MaterialIndex = (uint)(mats.Count - 1)
                 };
             }
         }
@@ -112,18 +115,18 @@ public class RTRendererComponent : Component, IUpdatable
             Matrix4.CreateScale(0.03f) *
             Matrix4.CreateTranslation(-3.0f, 1.0f, -1.5f);
 
+        mats.Add(new RTMaterial.Material()
+        {
+            Color = new Vector3(1.0f, 1.0f, 0.0f),
+            Smoothness = 1.0f,
+            Metallic = 0.9f
+        });
         meshInfos[0] = new RTMaterial.MeshInfo()
         {
             NodeIndex = 0,
             Transform = tr1,
             InvTransform = Matrix4.Invert(tr1),
-            Material = new RTMaterial.Material()
-            {
-                Color = new Vector3(1.0f, 1.0f, 0.0f),
-                EmissionStrength = 0.0f,
-                Smoothness = 1.0f,
-                Metallic = 0.9f
-            }
+            MaterialIndex = (uint)(mats.Count - 1)
         };
 
         Matrix4 tr2 =
@@ -131,18 +134,18 @@ public class RTRendererComponent : Component, IUpdatable
             Matrix4.CreateFromAxisAngle(Vector3.UnitY, -1.0f) *
             Matrix4.CreateTranslation(10.0f, 3.0f, -5.0f);
 
+        mats.Add(new RTMaterial.Material()
+        {
+            Color = new Vector3(1.0f, 0.0f, 0.7843f),
+            Smoothness = 0.8f,
+            Metallic = 0.5f
+        });
         meshInfos[1] = new RTMaterial.MeshInfo()
         {
             NodeIndex = 0,
             Transform = tr2,
             InvTransform = Matrix4.Invert(tr2),
-            Material = new RTMaterial.Material()
-            {
-                Color = new Vector3(1.0f, 0.0f, 0.7843f),
-                EmissionStrength = 0.0f,
-                Smoothness = 0.8f,
-                Metallic = 0.5f
-            }
+            MaterialIndex = (uint)(mats.Count - 1)
         };
 
         RTMaterial.Vertex[] vertices = new RTMaterial.Vertex[bvhMesh.Vertices.Length];
@@ -156,9 +159,10 @@ public class RTRendererComponent : Component, IUpdatable
         _indices = new SSBO<uint>(bvhMesh.Indices.ToArray());
         _meshes = new SSBO<RTMaterial.MeshInfo>(meshInfos);
         _nodes = new SSBO<BVHMesh.BVHNode>(bvhMesh.Nodes.ToArray());
+        _materials = new SSBO<RTMaterial.Material>(mats.ToArray());
 
         _material = new RTMaterial(Entity.World.CurrentCamera, 
-            _spheres, _vertices, _indices, _meshes, _nodes);
+            _spheres, _vertices, _indices, _meshes, _nodes, _materials);
 
         Game.Instance.Renderer.PostRenderCallback += PostRenderCallback;
         Game.Instance.Renderer.ViewportSizeChangeCallback += ViewportSizeCallback;
@@ -171,6 +175,7 @@ public class RTRendererComponent : Component, IUpdatable
         _indices.Dispose();
         _meshes.Dispose();
         _nodes.Dispose();
+        _materials.Dispose();
         _frame1.Dispose();
         _frame2.Dispose();
 
